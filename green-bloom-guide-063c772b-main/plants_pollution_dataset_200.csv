@@ -1,0 +1,201 @@
+Plant_Name,Scientific_Name,Plant_Type,APTI,Pollution_Tolerance,Maintenance,Soil_Type,Wikipedia_Link
+Neem,Azadirachta indica,Tree,12,Medium,Low,Dry,https://en.wikipedia.org/wiki/Azadirachta_indica
+Peepal,Ficus religiosa,Tree,13,Medium,Low,Dry,https://en.wikipedia.org/wiki/Ficus_religiosa
+Banyan,Ficus benghalensis,Tree,14,Medium,Low,Dry,https://en.wikipedia.org/wiki/Ficus_benghalensis
+Jamun,Syzygium cumini,Tree,15,Medium,Low,Dry,https://en.wikipedia.org/wiki/Syzygium_cumini
+Mango,Mangifera indica,Tree,16,Medium,Low,Dry,https://en.wikipedia.org/wiki/Mangifera_indica
+Ashoka,Saraca asoca,Tree,17,Medium,Low,Dry,https://en.wikipedia.org/wiki/Saraca_asoca
+Gulmohar,Delonix regia,Tree,18,High,Low,Dry,https://en.wikipedia.org/wiki/Delonix_regia
+Arjun,Terminalia arjuna,Tree,19,High,Low,Dry,https://en.wikipedia.org/wiki/Terminalia_arjuna
+Tamarind,Tamarindus indica,Tree,20,High,Low,Dry,https://en.wikipedia.org/wiki/Tamarindus_indica
+Teak,Tectona grandis,Tree,21,High,Low,Dry,https://en.wikipedia.org/wiki/Tectona_grandis
+Sal,Shorea robusta,Tree,12,Medium,Low,Dry,https://en.wikipedia.org/wiki/Shorea_robusta
+Eucalyptus,Eucalyptus globulus,Tree,13,Medium,Low,Dry,https://en.wikipedia.org/wiki/Eucalyptus_globulus
+Poplar,Populus deltoides,Tree,14,Medium,Low,Dry,https://en.wikipedia.org/wiki/Populus_deltoides
+Willow,Salix babylonica,Tree,15,Medium,Low,Dry,https://en.wikipedia.org/wiki/Salix_babylonica
+Oak,Quercus robur,Tree,16,Medium,Low,Dry,https://en.wikipedia.org/wiki/Quercus_robur
+Maple,Acer palmatum,Tree,17,Medium,Low,Dry,https://en.wikipedia.org/wiki/Acer_palmatum
+Birch,Betula pendula,Tree,18,High,Low,Dry,https://en.wikipedia.org/wiki/Betula_pendula
+Cedar,Cedrus deodara,Tree,19,High,Low,Dry,https://en.wikipedia.org/wiki/Cedrus_deodara
+Pine,Pinus sylvestris,Tree,20,High,Low,Dry,https://en.wikipedia.org/wiki/Pinus_sylvestris
+Spruce,Picea abies,Tree,21,High,Low,Dry,https://en.wikipedia.org/wiki/Picea_abies
+Guava,Psidium guajava,Tree,12,Medium,Low,Dry,https://en.wikipedia.org/wiki/Psidium_guajava
+Papaya,Carica papaya,Tree,13,Medium,Low,Dry,https://en.wikipedia.org/wiki/Carica_papaya
+Banana,Musa paradisiaca,Tree,14,Medium,Low,Dry,https://en.wikipedia.org/wiki/Musa_paradisiaca
+Coconut,Cocos nucifera,Tree,15,Medium,Low,Dry,https://en.wikipedia.org/wiki/Cocos_nucifera
+Date Palm,Phoenix dactylifera,Tree,16,Medium,Low,Dry,https://en.wikipedia.org/wiki/Phoenix_dactylifera
+Bottle Palm,Hyophorbe lagenicaulis,Tree,17,Medium,Low,Dry,https://en.wikipedia.org/wiki/Hyophorbe_lagenicaulis
+Fan Palm,Livistona chinensis,Tree,18,High,Low,Dry,https://en.wikipedia.org/wiki/Livistona_chinensis
+Sago Palm,Cycas revoluta,Tree,19,High,Low,Dry,https://en.wikipedia.org/wiki/Cycas_revoluta
+Traveler Palm,Ravenala madagascariensis,Tree,20,High,Low,Dry,https://en.wikipedia.org/wiki/Ravenala_madagascariensis
+Mahogany,Swietenia mahagoni,Tree,21,High,Low,Dry,https://en.wikipedia.org/wiki/Swietenia_mahagoni
+Rubber Plant,Ficus elastica,Indoor,12,Medium,Very Low,Indoor,https://en.wikipedia.org/wiki/Ficus_elastica
+Money Plant,Epipremnum aureum,Indoor,13,Medium,Very Low,Indoor,https://en.wikipedia.org/wiki/Epipremnum_aureum
+Snake Plant,Dracaena trifasciata,Indoor,14,Medium,Very Low,Indoor,https://en.wikipedia.org/wiki/Dracaena_trifasciata
+Spider Plant,Chlorophytum comosum,Indoor,15,Medium,Very Low,Indoor,https://en.wikipedia.org/wiki/Chlorophytum_comosum
+Peace Lily,Spathiphyllum wallisii,Indoor,16,Medium,Very Low,Indoor,https://en.wikipedia.org/wiki/Spathiphyllum_wallisii
+Areca Palm,Dypsis lutescens,Indoor,17,Medium,Very Low,Indoor,https://en.wikipedia.org/wiki/Dypsis_lutescens
+Boston Fern,Nephrolepis exaltata,Indoor,18,High,Very Low,Indoor,https://en.wikipedia.org/wiki/Nephrolepis_exaltata
+Dracaena,Dracaena marginata,Indoor,19,High,Very Low,Indoor,https://en.wikipedia.org/wiki/Dracaena_marginata
+Schefflera,Schefflera arboricola,Indoor,20,High,Very Low,Indoor,https://en.wikipedia.org/wiki/Schefflera_arboricola
+Aglaonema,Aglaonema commutatum,Indoor,21,High,Very Low,Indoor,https://en.wikipedia.org/wiki/Aglaonema_commutatum
+ZZ Plant,Zamioculcas zamiifolia,Indoor,12,Medium,Very Low,Indoor,https://en.wikipedia.org/wiki/Zamioculcas_zamiifolia
+Parlor Palm,Chamaedorea elegans,Indoor,13,Medium,Very Low,Indoor,https://en.wikipedia.org/wiki/Chamaedorea_elegans
+Kentia Palm,Howea forsteriana,Indoor,14,Medium,Very Low,Indoor,https://en.wikipedia.org/wiki/Howea_forsteriana
+Lady Palm,Rhapis excelsa,Indoor,15,Medium,Very Low,Indoor,https://en.wikipedia.org/wiki/Rhapis_excelsa
+Fiddle Leaf Fig,Ficus lyrata,Indoor,16,Medium,Very Low,Indoor,https://en.wikipedia.org/wiki/Ficus_lyrata
+Chinese Evergreen,Aglaonema modestum,Indoor,17,Medium,Very Low,Indoor,https://en.wikipedia.org/wiki/Aglaonema_modestum
+Golden Pothos,Epipremnum aureum,Indoor,18,High,Very Low,Indoor,https://en.wikipedia.org/wiki/Epipremnum_aureum
+English Ivy,Hedera helix,Indoor,19,High,Very Low,Indoor,https://en.wikipedia.org/wiki/Hedera_helix
+Croton,Codiaeum variegatum,Shrub,20,High,Medium,Moist,https://en.wikipedia.org/wiki/Codiaeum_variegatum
+Hibiscus,Hibiscus rosa-sinensis,Shrub,21,High,Medium,Moist,https://en.wikipedia.org/wiki/Hibiscus_rosa-sinensis
+Bougainvillea,Bougainvillea spectabilis,Shrub,12,Medium,Medium,Moist,https://en.wikipedia.org/wiki/Bougainvillea_spectabilis
+Oleander,Nerium oleander,Shrub,13,Medium,Medium,Moist,https://en.wikipedia.org/wiki/Nerium_oleander
+Ixora,Ixora coccinea,Shrub,14,Medium,Medium,Moist,https://en.wikipedia.org/wiki/Ixora_coccinea
+Lantana,Lantana camara,Shrub,15,Medium,Medium,Moist,https://en.wikipedia.org/wiki/Lantana_camara
+Curry Leaf,Murraya koenigii,Shrub,16,Medium,Medium,Moist,https://en.wikipedia.org/wiki/Murraya_koenigii
+Gardenia,Gardenia jasminoides,Shrub,17,Medium,Medium,Moist,https://en.wikipedia.org/wiki/Gardenia_jasminoides
+Jasmine,Jasminum sambac,Shrub,18,High,Medium,Moist,https://en.wikipedia.org/wiki/Jasminum_sambac
+Night Blooming Jasmine,Cestrum nocturnum,Shrub,19,High,Medium,Moist,https://en.wikipedia.org/wiki/Cestrum_nocturnum
+Rose,Rosa indica,Shrub,20,High,Medium,Moist,https://en.wikipedia.org/wiki/Rosa_indica
+Camellia,Camellia japonica,Shrub,21,High,Medium,Moist,https://en.wikipedia.org/wiki/Camellia_japonica
+Azalea,Rhododendron indicum,Shrub,12,Medium,Medium,Moist,https://en.wikipedia.org/wiki/Rhododendron_indicum
+Hydrangea,Hydrangea macrophylla,Shrub,13,Medium,Medium,Moist,https://en.wikipedia.org/wiki/Hydrangea_macrophylla
+Forsythia,Forsythia suspensa,Shrub,14,Medium,Medium,Moist,https://en.wikipedia.org/wiki/Forsythia_suspensa
+Lilac,Syringa vulgaris,Shrub,15,Medium,Medium,Moist,https://en.wikipedia.org/wiki/Syringa_vulgaris
+Barberry,Berberis thunbergii,Shrub,16,Medium,Medium,Moist,https://en.wikipedia.org/wiki/Berberis_thunbergii
+Juniper,Juniperus communis,Shrub,17,Medium,Medium,Moist,https://en.wikipedia.org/wiki/Juniperus_communis
+Lavender,Lavandula angustifolia,Herb,18,High,Medium,Moist,https://en.wikipedia.org/wiki/Lavandula_angustifolia
+Mint,Mentha spicata,Herb,19,High,Medium,Moist,https://en.wikipedia.org/wiki/Mentha_spicata
+Basil,Ocimum basilicum,Herb,20,High,Medium,Moist,https://en.wikipedia.org/wiki/Ocimum_basilicum
+Tulsi,Ocimum tenuiflorum,Herb,21,High,Medium,Moist,https://en.wikipedia.org/wiki/Ocimum_tenuiflorum
+Thyme,Thymus vulgaris,Herb,12,Medium,Medium,Moist,https://en.wikipedia.org/wiki/Thymus_vulgaris
+Oregano,Origanum vulgare,Herb,13,Medium,Medium,Moist,https://en.wikipedia.org/wiki/Origanum_vulgare
+Parsley,Petroselinum crispum,Herb,14,Medium,Medium,Moist,https://en.wikipedia.org/wiki/Petroselinum_crispum
+Dill,Anethum graveolens,Herb,15,Medium,Medium,Moist,https://en.wikipedia.org/wiki/Anethum_graveolens
+Spinach,Spinacia oleracea,Herb,16,Medium,Medium,Moist,https://en.wikipedia.org/wiki/Spinacia_oleracea
+Coriander,Coriandrum sativum,Herb,17,Medium,Medium,Moist,https://en.wikipedia.org/wiki/Coriandrum_sativum
+Fenugreek,Trigonella foenum-graecum,Herb,18,High,Medium,Moist,https://en.wikipedia.org/wiki/Trigonella_foenum-graecum
+Mustard,Brassica juncea,Herb,19,High,Medium,Moist,https://en.wikipedia.org/wiki/Brassica_juncea
+Sunflower,Helianthus annuus,Herb,20,High,Medium,Moist,https://en.wikipedia.org/wiki/Helianthus_annuus
+Daisy,Bellis perennis,Herb,21,High,Medium,Moist,https://en.wikipedia.org/wiki/Bellis_perennis
+Zinnia,Zinnia elegans,Herb,12,Medium,Medium,Moist,https://en.wikipedia.org/wiki/Zinnia_elegans
+Cosmos,Cosmos bipinnatus,Herb,13,Medium,Medium,Moist,https://en.wikipedia.org/wiki/Cosmos_bipinnatus
+Nasturtium,Tropaeolum majus,Herb,14,Medium,Medium,Moist,https://en.wikipedia.org/wiki/Tropaeolum_majus
+Morning Glory,Ipomoea purpurea,Climber,15,Medium,Medium,Dry,https://en.wikipedia.org/wiki/Ipomoea_purpurea
+Passionflower,Passiflora edulis,Climber,16,Medium,Medium,Dry,https://en.wikipedia.org/wiki/Passiflora_edulis
+Grapevine,Vitis vinifera,Climber,17,Medium,Medium,Dry,https://en.wikipedia.org/wiki/Vitis_vinifera
+Bamboo,Bambusa vulgaris,Grass,18,High,Low,Dry,https://en.wikipedia.org/wiki/Bambusa_vulgaris
+Aloe Vera,Aloe vera,Succulent,19,High,Medium,Dry,https://en.wikipedia.org/wiki/Aloe_vera
+Neem Variety 2,Azadirachta indica,Tree,20,High,Low,Dry,https://en.wikipedia.org/wiki/Azadirachta_indica
+Peepal Variety 2,Ficus religiosa,Tree,21,High,Low,Dry,https://en.wikipedia.org/wiki/Ficus_religiosa
+Banyan Variety 2,Ficus benghalensis,Tree,12,Medium,Low,Dry,https://en.wikipedia.org/wiki/Ficus_benghalensis
+Jamun Variety 2,Syzygium cumini,Tree,13,Medium,Low,Dry,https://en.wikipedia.org/wiki/Syzygium_cumini
+Mango Variety 2,Mangifera indica,Tree,14,Medium,Low,Dry,https://en.wikipedia.org/wiki/Mangifera_indica
+Ashoka Variety 2,Saraca asoca,Tree,15,Medium,Low,Dry,https://en.wikipedia.org/wiki/Saraca_asoca
+Gulmohar Variety 2,Delonix regia,Tree,16,Medium,Low,Dry,https://en.wikipedia.org/wiki/Delonix_regia
+Arjun Variety 2,Terminalia arjuna,Tree,17,Medium,Low,Dry,https://en.wikipedia.org/wiki/Terminalia_arjuna
+Tamarind Variety 2,Tamarindus indica,Tree,18,High,Low,Dry,https://en.wikipedia.org/wiki/Tamarindus_indica
+Teak Variety 2,Tectona grandis,Tree,19,High,Low,Dry,https://en.wikipedia.org/wiki/Tectona_grandis
+Sal Variety 2,Shorea robusta,Tree,20,High,Low,Dry,https://en.wikipedia.org/wiki/Shorea_robusta
+Eucalyptus Variety 2,Eucalyptus globulus,Tree,21,High,Low,Dry,https://en.wikipedia.org/wiki/Eucalyptus_globulus
+Poplar Variety 2,Populus deltoides,Tree,12,Medium,Low,Dry,https://en.wikipedia.org/wiki/Populus_deltoides
+Willow Variety 2,Salix babylonica,Tree,13,Medium,Low,Dry,https://en.wikipedia.org/wiki/Salix_babylonica
+Oak Variety 2,Quercus robur,Tree,14,Medium,Low,Dry,https://en.wikipedia.org/wiki/Quercus_robur
+Maple Variety 2,Acer palmatum,Tree,15,Medium,Low,Dry,https://en.wikipedia.org/wiki/Acer_palmatum
+Birch Variety 2,Betula pendula,Tree,16,Medium,Low,Dry,https://en.wikipedia.org/wiki/Betula_pendula
+Cedar Variety 2,Cedrus deodara,Tree,17,Medium,Low,Dry,https://en.wikipedia.org/wiki/Cedrus_deodara
+Pine Variety 2,Pinus sylvestris,Tree,18,High,Low,Dry,https://en.wikipedia.org/wiki/Pinus_sylvestris
+Spruce Variety 2,Picea abies,Tree,19,High,Low,Dry,https://en.wikipedia.org/wiki/Picea_abies
+Guava Variety 2,Psidium guajava,Tree,20,High,Low,Dry,https://en.wikipedia.org/wiki/Psidium_guajava
+Papaya Variety 2,Carica papaya,Tree,21,High,Low,Dry,https://en.wikipedia.org/wiki/Carica_papaya
+Banana Variety 2,Musa paradisiaca,Tree,12,Medium,Low,Dry,https://en.wikipedia.org/wiki/Musa_paradisiaca
+Coconut Variety 2,Cocos nucifera,Tree,13,Medium,Low,Dry,https://en.wikipedia.org/wiki/Cocos_nucifera
+Date Palm Variety 2,Phoenix dactylifera,Tree,14,Medium,Low,Dry,https://en.wikipedia.org/wiki/Phoenix_dactylifera
+Bottle Palm Variety 2,Hyophorbe lagenicaulis,Tree,15,Medium,Low,Dry,https://en.wikipedia.org/wiki/Hyophorbe_lagenicaulis
+Fan Palm Variety 2,Livistona chinensis,Tree,16,Medium,Low,Dry,https://en.wikipedia.org/wiki/Livistona_chinensis
+Sago Palm Variety 2,Cycas revoluta,Tree,17,Medium,Low,Dry,https://en.wikipedia.org/wiki/Cycas_revoluta
+Traveler Palm Variety 2,Ravenala madagascariensis,Tree,18,High,Low,Dry,https://en.wikipedia.org/wiki/Ravenala_madagascariensis
+Mahogany Variety 2,Swietenia mahagoni,Tree,19,High,Low,Dry,https://en.wikipedia.org/wiki/Swietenia_mahagoni
+Rubber Plant Variety 2,Ficus elastica,Indoor,20,High,Very Low,Indoor,https://en.wikipedia.org/wiki/Ficus_elastica
+Money Plant Variety 2,Epipremnum aureum,Indoor,21,High,Very Low,Indoor,https://en.wikipedia.org/wiki/Epipremnum_aureum
+Snake Plant Variety 2,Dracaena trifasciata,Indoor,12,Medium,Very Low,Indoor,https://en.wikipedia.org/wiki/Dracaena_trifasciata
+Spider Plant Variety 2,Chlorophytum comosum,Indoor,13,Medium,Very Low,Indoor,https://en.wikipedia.org/wiki/Chlorophytum_comosum
+Peace Lily Variety 2,Spathiphyllum wallisii,Indoor,14,Medium,Very Low,Indoor,https://en.wikipedia.org/wiki/Spathiphyllum_wallisii
+Areca Palm Variety 2,Dypsis lutescens,Indoor,15,Medium,Very Low,Indoor,https://en.wikipedia.org/wiki/Dypsis_lutescens
+Boston Fern Variety 2,Nephrolepis exaltata,Indoor,16,Medium,Very Low,Indoor,https://en.wikipedia.org/wiki/Nephrolepis_exaltata
+Dracaena Variety 2,Dracaena marginata,Indoor,17,Medium,Very Low,Indoor,https://en.wikipedia.org/wiki/Dracaena_marginata
+Schefflera Variety 2,Schefflera arboricola,Indoor,18,High,Very Low,Indoor,https://en.wikipedia.org/wiki/Schefflera_arboricola
+Aglaonema Variety 2,Aglaonema commutatum,Indoor,19,High,Very Low,Indoor,https://en.wikipedia.org/wiki/Aglaonema_commutatum
+ZZ Plant Variety 2,Zamioculcas zamiifolia,Indoor,20,High,Very Low,Indoor,https://en.wikipedia.org/wiki/Zamioculcas_zamiifolia
+Parlor Palm Variety 2,Chamaedorea elegans,Indoor,21,High,Very Low,Indoor,https://en.wikipedia.org/wiki/Chamaedorea_elegans
+Kentia Palm Variety 2,Howea forsteriana,Indoor,12,Medium,Very Low,Indoor,https://en.wikipedia.org/wiki/Howea_forsteriana
+Lady Palm Variety 2,Rhapis excelsa,Indoor,13,Medium,Very Low,Indoor,https://en.wikipedia.org/wiki/Rhapis_excelsa
+Fiddle Leaf Fig Variety 2,Ficus lyrata,Indoor,14,Medium,Very Low,Indoor,https://en.wikipedia.org/wiki/Ficus_lyrata
+Chinese Evergreen Variety 2,Aglaonema modestum,Indoor,15,Medium,Very Low,Indoor,https://en.wikipedia.org/wiki/Aglaonema_modestum
+Golden Pothos Variety 2,Epipremnum aureum,Indoor,16,Medium,Very Low,Indoor,https://en.wikipedia.org/wiki/Epipremnum_aureum
+English Ivy Variety 2,Hedera helix,Indoor,17,Medium,Very Low,Indoor,https://en.wikipedia.org/wiki/Hedera_helix
+Croton Variety 2,Codiaeum variegatum,Shrub,18,High,Medium,Moist,https://en.wikipedia.org/wiki/Codiaeum_variegatum
+Hibiscus Variety 2,Hibiscus rosa-sinensis,Shrub,19,High,Medium,Moist,https://en.wikipedia.org/wiki/Hibiscus_rosa-sinensis
+Bougainvillea Variety 2,Bougainvillea spectabilis,Shrub,20,High,Medium,Moist,https://en.wikipedia.org/wiki/Bougainvillea_spectabilis
+Oleander Variety 2,Nerium oleander,Shrub,21,High,Medium,Moist,https://en.wikipedia.org/wiki/Nerium_oleander
+Ixora Variety 2,Ixora coccinea,Shrub,12,Medium,Medium,Moist,https://en.wikipedia.org/wiki/Ixora_coccinea
+Lantana Variety 2,Lantana camara,Shrub,13,Medium,Medium,Moist,https://en.wikipedia.org/wiki/Lantana_camara
+Curry Leaf Variety 2,Murraya koenigii,Shrub,14,Medium,Medium,Moist,https://en.wikipedia.org/wiki/Murraya_koenigii
+Gardenia Variety 2,Gardenia jasminoides,Shrub,15,Medium,Medium,Moist,https://en.wikipedia.org/wiki/Gardenia_jasminoides
+Jasmine Variety 2,Jasminum sambac,Shrub,16,Medium,Medium,Moist,https://en.wikipedia.org/wiki/Jasminum_sambac
+Night Blooming Jasmine Variety 2,Cestrum nocturnum,Shrub,17,Medium,Medium,Moist,https://en.wikipedia.org/wiki/Cestrum_nocturnum
+Rose Variety 2,Rosa indica,Shrub,18,High,Medium,Moist,https://en.wikipedia.org/wiki/Rosa_indica
+Camellia Variety 2,Camellia japonica,Shrub,19,High,Medium,Moist,https://en.wikipedia.org/wiki/Camellia_japonica
+Azalea Variety 2,Rhododendron indicum,Shrub,20,High,Medium,Moist,https://en.wikipedia.org/wiki/Rhododendron_indicum
+Hydrangea Variety 2,Hydrangea macrophylla,Shrub,21,High,Medium,Moist,https://en.wikipedia.org/wiki/Hydrangea_macrophylla
+Forsythia Variety 2,Forsythia suspensa,Shrub,12,Medium,Medium,Moist,https://en.wikipedia.org/wiki/Forsythia_suspensa
+Lilac Variety 2,Syringa vulgaris,Shrub,13,Medium,Medium,Moist,https://en.wikipedia.org/wiki/Syringa_vulgaris
+Barberry Variety 2,Berberis thunbergii,Shrub,14,Medium,Medium,Moist,https://en.wikipedia.org/wiki/Berberis_thunbergii
+Juniper Variety 2,Juniperus communis,Shrub,15,Medium,Medium,Moist,https://en.wikipedia.org/wiki/Juniperus_communis
+Lavender Variety 2,Lavandula angustifolia,Herb,16,Medium,Medium,Moist,https://en.wikipedia.org/wiki/Lavandula_angustifolia
+Mint Variety 2,Mentha spicata,Herb,17,Medium,Medium,Moist,https://en.wikipedia.org/wiki/Mentha_spicata
+Basil Variety 2,Ocimum basilicum,Herb,18,High,Medium,Moist,https://en.wikipedia.org/wiki/Ocimum_basilicum
+Tulsi Variety 2,Ocimum tenuiflorum,Herb,19,High,Medium,Moist,https://en.wikipedia.org/wiki/Ocimum_tenuiflorum
+Thyme Variety 2,Thymus vulgaris,Herb,20,High,Medium,Moist,https://en.wikipedia.org/wiki/Thymus_vulgaris
+Oregano Variety 2,Origanum vulgare,Herb,21,High,Medium,Moist,https://en.wikipedia.org/wiki/Origanum_vulgare
+Parsley Variety 2,Petroselinum crispum,Herb,12,Medium,Medium,Moist,https://en.wikipedia.org/wiki/Petroselinum_crispum
+Dill Variety 2,Anethum graveolens,Herb,13,Medium,Medium,Moist,https://en.wikipedia.org/wiki/Anethum_graveolens
+Spinach Variety 2,Spinacia oleracea,Herb,14,Medium,Medium,Moist,https://en.wikipedia.org/wiki/Spinacia_oleracea
+Coriander Variety 2,Coriandrum sativum,Herb,15,Medium,Medium,Moist,https://en.wikipedia.org/wiki/Coriandrum_sativum
+Fenugreek Variety 2,Trigonella foenum-graecum,Herb,16,Medium,Medium,Moist,https://en.wikipedia.org/wiki/Trigonella_foenum-graecum
+Mustard Variety 2,Brassica juncea,Herb,17,Medium,Medium,Moist,https://en.wikipedia.org/wiki/Brassica_juncea
+Sunflower Variety 2,Helianthus annuus,Herb,18,High,Medium,Moist,https://en.wikipedia.org/wiki/Helianthus_annuus
+Daisy Variety 2,Bellis perennis,Herb,19,High,Medium,Moist,https://en.wikipedia.org/wiki/Bellis_perennis
+Zinnia Variety 2,Zinnia elegans,Herb,20,High,Medium,Moist,https://en.wikipedia.org/wiki/Zinnia_elegans
+Cosmos Variety 2,Cosmos bipinnatus,Herb,21,High,Medium,Moist,https://en.wikipedia.org/wiki/Cosmos_bipinnatus
+Nasturtium Variety 2,Tropaeolum majus,Herb,12,Medium,Medium,Moist,https://en.wikipedia.org/wiki/Tropaeolum_majus
+Morning Glory Variety 2,Ipomoea purpurea,Climber,13,Medium,Medium,Dry,https://en.wikipedia.org/wiki/Ipomoea_purpurea
+Passionflower Variety 2,Passiflora edulis,Climber,14,Medium,Medium,Dry,https://en.wikipedia.org/wiki/Passiflora_edulis
+Grapevine Variety 2,Vitis vinifera,Climber,15,Medium,Medium,Dry,https://en.wikipedia.org/wiki/Vitis_vinifera
+Bamboo Variety 2,Bambusa vulgaris,Grass,16,Medium,Low,Dry,https://en.wikipedia.org/wiki/Bambusa_vulgaris
+Aloe Vera Variety 2,Aloe vera,Succulent,17,Medium,Medium,Dry,https://en.wikipedia.org/wiki/Aloe_vera
+Neem Variety 3,Azadirachta indica,Tree,18,High,Low,Dry,https://en.wikipedia.org/wiki/Azadirachta_indica
+Peepal Variety 3,Ficus religiosa,Tree,19,High,Low,Dry,https://en.wikipedia.org/wiki/Ficus_religiosa
+Banyan Variety 3,Ficus benghalensis,Tree,20,High,Low,Dry,https://en.wikipedia.org/wiki/Ficus_benghalensis
+Jamun Variety 3,Syzygium cumini,Tree,21,High,Low,Dry,https://en.wikipedia.org/wiki/Syzygium_cumini
+Mango Variety 3,Mangifera indica,Tree,12,Medium,Low,Dry,https://en.wikipedia.org/wiki/Mangifera_indica
+Ashoka Variety 3,Saraca asoca,Tree,13,Medium,Low,Dry,https://en.wikipedia.org/wiki/Saraca_asoca
+Gulmohar Variety 3,Delonix regia,Tree,14,Medium,Low,Dry,https://en.wikipedia.org/wiki/Delonix_regia
+Arjun Variety 3,Terminalia arjuna,Tree,15,Medium,Low,Dry,https://en.wikipedia.org/wiki/Terminalia_arjuna
+Tamarind Variety 3,Tamarindus indica,Tree,16,Medium,Low,Dry,https://en.wikipedia.org/wiki/Tamarindus_indica
+Teak Variety 3,Tectona grandis,Tree,17,Medium,Low,Dry,https://en.wikipedia.org/wiki/Tectona_grandis
+Sal Variety 3,Shorea robusta,Tree,18,High,Low,Dry,https://en.wikipedia.org/wiki/Shorea_robusta
+Eucalyptus Variety 3,Eucalyptus globulus,Tree,19,High,Low,Dry,https://en.wikipedia.org/wiki/Eucalyptus_globulus
+Poplar Variety 3,Populus deltoides,Tree,20,High,Low,Dry,https://en.wikipedia.org/wiki/Populus_deltoides
+Willow Variety 3,Salix babylonica,Tree,21,High,Low,Dry,https://en.wikipedia.org/wiki/Salix_babylonica
+Oak Variety 3,Quercus robur,Tree,12,Medium,Low,Dry,https://en.wikipedia.org/wiki/Quercus_robur
+Maple Variety 3,Acer palmatum,Tree,13,Medium,Low,Dry,https://en.wikipedia.org/wiki/Acer_palmatum
+Birch Variety 3,Betula pendula,Tree,14,Medium,Low,Dry,https://en.wikipedia.org/wiki/Betula_pendula
+Cedar Variety 3,Cedrus deodara,Tree,15,Medium,Low,Dry,https://en.wikipedia.org/wiki/Cedrus_deodara
+Pine Variety 3,Pinus sylvestris,Tree,16,Medium,Low,Dry,https://en.wikipedia.org/wiki/Pinus_sylvestris
+Spruce Variety 3,Picea abies,Tree,17,Medium,Low,Dry,https://en.wikipedia.org/wiki/Picea_abies
+Guava Variety 3,Psidium guajava,Tree,18,High,Low,Dry,https://en.wikipedia.org/wiki/Psidium_guajava
+Papaya Variety 3,Carica papaya,Tree,19,High,Low,Dry,https://en.wikipedia.org/wiki/Carica_papaya
+Banana Variety 3,Musa paradisiaca,Tree,20,High,Low,Dry,https://en.wikipedia.org/wiki/Musa_paradisiaca
+Coconut Variety 3,Cocos nucifera,Tree,21,High,Low,Dry,https://en.wikipedia.org/wiki/Cocos_nucifera

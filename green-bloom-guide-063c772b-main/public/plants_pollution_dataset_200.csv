@@ -1,0 +1,11 @@
+name,place,indoorOutdoor,sunlight,soil,area,pollutionTolerance,maintenance,watering,plantingMethod
+Neem,open_ground,outdoor,full,soil,large,high,low,weekly,"Use tree guard, water regularly"
+Peepal,open_ground,outdoor,full,soil,large,high,low,weekly,Plant away from buildings
+Ashoka,open_ground,outdoor,full,soil,medium,high,low,weekly,Good for roadside
+Snake Plant,home|office,indoor,low,pot,small,high,low,weekly,Low maintenance
+Areca Palm,home|office,indoor,partial,pot,medium,medium,medium,weekly,Needs indirect light
+Tulsi,balcony,outdoor,partial,pot,small,medium,medium,daily,Needs sunlight
+Aloe Vera,home|balcony,indoor,full,pot,small,medium,low,weekly,Needs sunlight
+Bamboo,open_ground,outdoor,full,soil,large,high,low,weekly,Fast growing
+Money Plant,home|office,indoor,low,pot,small,high,low,weekly,Can grow in water
+Lavender,balcony,outdoor,full,pot,small,low,medium,weekly,Needs dry conditions
