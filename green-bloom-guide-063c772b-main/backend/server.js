@@ -14,12 +14,24 @@ app.use(express.json());
 // Helper function to read CSV file
 function readCSV(filePath) {
   return new Promise((resolve, reject) => {
+    if (!fs.existsSync(filePath)) {
+      console.error(`CSV file not found: ${filePath}`);
+      resolve([]);
+      return;
+    }
+    
     const results = [];
     fs.createReadStream(filePath)
       .pipe(csv())
       .on('data', (data) => results.push(data))
-      .on('end', () => resolve(results))
-      .on('error', (error) => reject(error));
+      .on('end', () => {
+        console.log(`Successfully loaded ${results.length} records from ${filePath}`);
+        resolve(results);
+      })
+      .on('error', (error) => {
+        console.error(`Error reading CSV file ${filePath}:`, error);
+        reject(error);
+      });
   });
 }
 
@@ -32,23 +44,36 @@ let communityPlants = []; // Store community-added plants
 // Initialize data on server start
 async function initializeData() {
   try {
-    const csvPath = path.join(__dirname, '..');
+    // Correct path to public folder where CSV files are located
+    const csvPath = path.join(__dirname, '..', 'public');
     
-    plantsData = await readCSV(path.join(csvPath, 'plants_pollution_dataset_200.csv'));
-    pollutionData = await readCSV(path.join(csvPath, 'Global_Air_Pollution_Data_2025_2026.csv'));
-    soilData = await readCSV(path.join(csvPath, 'soil_improvement_dataset.csv'));
+    console.log('Loading CSV files from:', csvPath);
+    
+    const plantsCSVPath = path.join(csvPath, 'plants_pollution_dataset_200.csv');
+    const pollutionCSVPath = path.join(csvPath, 'Global_Air_Pollution_Data_2025_2026.csv');
+    const soilCSVPath = path.join(csvPath, 'soil_improvement_dataset.csv');
+    
+    console.log('Plants CSV path:', plantsCSVPath);
+    console.log('Pollution CSV path:', pollutionCSVPath);
+    console.log('Soil CSV path:', soilCSVPath);
+    
+    plantsData = await readCSV(plantsCSVPath);
+    pollutionData = await readCSV(pollutionCSVPath);
+    soilData = await readCSV(soilCSVPath);
     
     // Load community plants from JSON file if it exists
     const communityPlantsPath = path.join(__dirname, 'community-plants.json');
     if (fs.existsSync(communityPlantsPath)) {
       const communityData = fs.readFileSync(communityPlantsPath, 'utf8');
       communityPlants = JSON.parse(communityData);
+      console.log(`Loaded ${communityPlants.length} community plants from ${communityPlantsPath}`);
     }
     
-    console.log(`Loaded ${plantsData.length} plants`);
-    console.log(`Loaded ${pollutionData.length} pollution records`);
-    console.log(`Loaded ${soilData.length} soil types`);
-    console.log(`Loaded ${communityPlants.length} community plants`);
+    console.log(`Data loading complete:`);
+    console.log(`- Plants: ${plantsData.length}`);
+    console.log(`- Pollution records: ${pollutionData.length}`);
+    console.log(`- Soil types: ${soilData.length}`);
+    console.log(`- Community plants: ${communityPlants.length}`);
   } catch (error) {
     console.error('Error loading CSV files:', error);
   }
