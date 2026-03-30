@@ -56,12 +56,22 @@ const PlantCard = ({ plant, index, variant = 'recommended', isSaved, onToggleSav
                 src={wiki.thumbnail}
                 alt={plant.name}
                 className="w-full h-full object-cover"
+                onError={(e) => {
+                  const target = e.target as HTMLImageElement;
+                  target.style.display = 'none';
+                  target.parentElement!.textContent = plant.emoji;
+                }}
               />
             ) : (plant as Plant).imageUrl && !isAvoid ? (
               <img
                 src={(plant as Plant).imageUrl}
                 alt={plant.name}
                 className="w-full h-full object-cover"
+                onError={(e) => {
+                  const target = e.target as HTMLImageElement;
+                  target.style.display = 'none';
+                  target.parentElement!.textContent = plant.emoji;
+                }}
               />
             ) : (
               plant.emoji

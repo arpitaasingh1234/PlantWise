@@ -29,6 +29,7 @@ export interface Plant {
   survivalRate: number; // percentage
   areaSizes: AreaSize[]; // which area sizes this plant fits
   imageUrl?: string; // Dynamic plant image URL
+  plantingMethod?: string; // Planting method for road-side/open-ground
 }
 
 export interface SoilRecommendation {

@@ -68,7 +68,8 @@ export async function loadPlantsFromCSV(): Promise<Plant[]> {
         soilMix: soil,
         survivalRate: 85,
         areaSizes: mapAreaSize(area),
-        imageUrl: `https://source.unsplash.com/featured/?plant,${encodeURIComponent(name)}`
+        imageUrl: `https://source.unsplash.com/featured/?plant,${encodeURIComponent(name)}`,
+        plantingMethod: plantingMethod
       };
     });
   } catch (error) {

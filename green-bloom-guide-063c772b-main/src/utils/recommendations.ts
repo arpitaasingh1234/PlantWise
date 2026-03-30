@@ -59,6 +59,11 @@ function generateReason(plant: Plant, env: UserEnvironment, survivalScore: numbe
     reasons.push(`suitable for ${env.location} placement`);
   }
 
+  // Add planting method for road-side/open-ground
+  if ((env.spaceType === 'roadside' || env.spaceType === 'open-ground') && plant.plantingMethod) {
+    return `Recommended because it has ${reasons.slice(0, 2).join(', ')}. Planting method: ${plant.plantingMethod}`;
+  }
+
   if (reasons.length === 0) {
     return `Suitable for your ${env.spaceType} environment.`;
   }
@@ -116,8 +121,11 @@ export async function getRecommendations(env: UserEnvironment): Promise<Recommen
 
   const { noDirectPlant, reason: noDirectReason } = checkNoDirectPlantation(env);
 
-  // Enhanced filtering with partial match support
-  const exactMatches = plants.filter(plant => {
+  // Step-by-step filtering to ensure minimum 5 plants
+  let matchingPlants: Plant[] = [];
+
+  // Step 1: Strict filter - match all criteria
+  matchingPlants = plants.filter(plant => {
     const toleratesPollution = plant.pollutionTolerance.includes(env.pollutionLevel);
     const fitsSpace = plant.spaceTypes.includes(env.spaceType);
     const fitsPlanting = plant.plantingTypes.includes(env.plantingType);
@@ -127,21 +135,83 @@ export async function getRecommendations(env: UserEnvironment): Promise<Recommen
     return toleratesPollution && fitsSpace && fitsPlanting && fitsLocation && fitsSunlight && fitsArea;
   });
 
-  // If no exact matches, find partial matches
-  let matchingPlants = exactMatches;
-  if (exactMatches.length === 0) {
+  // Step 2: If results < 5, ignore area
+  if (matchingPlants.length < 5) {
     matchingPlants = plants.filter(plant => {
-      const score = calculateMatchScore(plant, env);
-      return score >= 3; // At least 3 out of 6 criteria should match
+      const toleratesPollution = plant.pollutionTolerance.includes(env.pollutionLevel);
+      const fitsSpace = plant.spaceTypes.includes(env.spaceType);
+      const fitsPlanting = plant.plantingTypes.includes(env.plantingType);
+      const fitsLocation = plant.locations.includes(env.location);
+      const fitsSunlight = plant.sunlight.includes(env.sunlight);
+      return toleratesPollution && fitsSpace && fitsPlanting && fitsLocation && fitsSunlight;
     });
+  }
+
+  // Step 3: If results < 5, ignore soil
+  if (matchingPlants.length < 5) {
+    matchingPlants = plants.filter(plant => {
+      const toleratesPollution = plant.pollutionTolerance.includes(env.pollutionLevel);
+      const fitsSpace = plant.spaceTypes.includes(env.spaceType);
+      const fitsLocation = plant.locations.includes(env.location);
+      const fitsSunlight = plant.sunlight.includes(env.sunlight);
+      return toleratesPollution && fitsSpace && fitsLocation && fitsSunlight;
+    });
+  }
+
+  // Step 4: If results < 5, ignore sunlight
+  if (matchingPlants.length < 5) {
+    matchingPlants = plants.filter(plant => {
+      const toleratesPollution = plant.pollutionTolerance.includes(env.pollutionLevel);
+      const fitsSpace = plant.spaceTypes.includes(env.spaceType);
+      const fitsLocation = plant.locations.includes(env.location);
+      return toleratesPollution && fitsSpace && fitsLocation;
+    });
+  }
+
+  // Step 5: If still < 5, return top plants based on pollutionTolerance
+  if (matchingPlants.length < 5) {
+    matchingPlants = plants.filter(plant => 
+      plant.pollutionTolerance.includes(env.pollutionLevel)
+    ).sort((a, b) => {
+      // Prioritize air purifying plants
+      const aScore = (a.airPurifying ? 10 : 0) + (a.pollutionTolerance.includes('high') ? 5 : 0);
+      const bScore = (b.airPurifying ? 10 : 0) + (b.pollutionTolerance.includes('high') ? 5 : 0);
+      return bScore - aScore;
+    });
+  }
+
+  // Fallback: If no filters selected or very strict condition, show default recommended plants
+  if (matchingPlants.length === 0) {
+    const defaultPlantNames = ['Snake Plant', 'Money Plant', 'Aloe Vera', 'Areca Palm', 'Tulsi'];
+    matchingPlants = plants.filter(plant => 
+      defaultPlantNames.includes(plant.name)
+    );
+  }
+
+  // Ensure we have at least 5 plants
+  if (matchingPlants.length < 5) {
+    // Add more plants based on pollution tolerance if needed
+    const additionalPlants = plants.filter(plant => 
+      plant.pollutionTolerance.includes(env.pollutionLevel) && 
+      !matchingPlants.includes(plant)
+    ).slice(0, 5 - matchingPlants.length);
+    
+    matchingPlants = [...matchingPlants, ...additionalPlants];
+  }
+
+  // Final fallback - if still less than 5, add any plants
+  if (matchingPlants.length < 5) {
+    const anyPlants = plants.filter(plant => !matchingPlants.includes(plant)).slice(0, 5 - matchingPlants.length);
+    matchingPlants = [...matchingPlants, ...anyPlants];
   }
 
   // Fetch ML survival scores in parallel
   const scoredPlants: RecommendedPlant[] = await Promise.all(
-    matchingPlants.map(async (plant) => {
+    matchingPlants.slice(0, 10).map(async (plant) => {
       const survivalScore = await fetchSurvivalFromML(env, plant);
       return {
         ...plant,
+        imageUrl: plant.imageUrl || `https://source.unsplash.com/featured/?plant,${encodeURIComponent(plant.name)}`,
         survivalScore,
         explanation: generateReason(plant, env, survivalScore),
         maintenanceCost: getMaintenanceCost(plant),

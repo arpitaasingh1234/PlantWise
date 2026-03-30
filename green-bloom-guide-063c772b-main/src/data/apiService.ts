@@ -42,7 +42,8 @@ export async function fetchPlantsFromAPI(): Promise<Plant[]> {
       soilMix: plant.soil,
       survivalRate: 85,
       areaSizes: mapAreaSize(plant.area),
-      imageUrl: `https://source.unsplash.com/featured/?plant,${encodeURIComponent(plant.name)}`
+      imageUrl: `https://source.unsplash.com/featured/?plant,${encodeURIComponent(plant.name)}`,
+      plantingMethod: plant.plantingMethod
     }));
   } catch (error) {
     console.error('Error fetching plants from API:', error);
