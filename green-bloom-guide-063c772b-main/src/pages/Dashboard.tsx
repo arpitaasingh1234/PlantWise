@@ -494,9 +494,14 @@ const Dashboard = () => {
                               transition={{ duration: 2, repeat: Infinity }}
                             >🌸</motion.span>
                           </h2>
-                          <p className="text-xs text-muted-foreground">
-                            {results.recommended.length} plants matched • sorted by AI confidence
-                          </p>
+                          <div className="flex items-center gap-4 text-xs text-muted-foreground">
+                            <span>{results.recommended.length} plants matched • sorted by AI confidence</span>
+                          </div>
+                          {results.weatherOptimization && (
+                            <p className="text-xs text-green-600 dark:text-green-400 mt-1">
+                              {results.weatherOptimization}
+                            </p>
+                          )}
                         </div>
                       </div>
                       <div className="space-y-4">

@@ -1,6 +1,7 @@
 import { plants, soilRecommendations, type Plant, type PollutionLevel, type SpaceType, type PlantingType, type Location, type SunlightLevel, type SoilRecommendation, type AreaSize } from '@/data/plants';
 import { fetchSurvivalFromML } from './mlApi';
 import { loadPollutionDataFromCSV } from '@/data/dataLoader';
+import { getWeatherData, getWeatherBasedCriteria, type WeatherData } from '@/services/weatherService';
 
 export interface UserEnvironment {
   pollutionLevel: PollutionLevel;
@@ -9,6 +10,7 @@ export interface UserEnvironment {
   location: Location;
   sunlight: SunlightLevel;
   areaSize: AreaSize;
+  weather?: 'hot-dry' | 'rainy-humid' | 'cold-frost' | 'normal';
 }
 
 export interface RecommendedPlant extends Plant {
@@ -25,6 +27,7 @@ export interface RecommendationResult {
   noPlantationReasons: string[];
   noDirectPlantation: boolean;
   noDirectPlantationReason: string;
+  weatherOptimization?: string;
 }
 
 const areaSizeLabels: Record<AreaSize, string> = {
@@ -105,6 +108,39 @@ function checkNoDirectPlantation(env: UserEnvironment): { noDirectPlant: boolean
 }
 
 export async function getRecommendations(env: UserEnvironment): Promise<RecommendationResult> {
+  // Use user-selected weather or default to normal
+  const selectedWeather = env.weather || 'normal';
+  
+  // Get weather-based criteria from selection
+  let weatherCriteria;
+  switch (selectedWeather) {
+    case 'hot-dry':
+      weatherCriteria = {
+        prioritizeLowWatering: true,
+        prioritizeHighPollutionTolerance: true,
+        description: 'Hot & Dry weather detected - showing drought-tolerant plants'
+      };
+      break;
+    case 'rainy-humid':
+      weatherCriteria = {
+        prioritizeWaterTolerant: true,
+        description: 'Rainy / Humid weather detected - showing moisture-loving plants'
+      };
+      break;
+    case 'cold-frost':
+      weatherCriteria = {
+        prioritizeIndoor: true,
+        description: 'Cold / Frost weather detected - showing indoor plants'
+      };
+      break;
+    case 'normal':
+    default:
+      weatherCriteria = {
+        noSpecialPriority: true,
+        description: 'Normal weather - showing all suitable plants'
+      };
+  }
+
   const { impossible, reasons } = checkNoPlantation(env);
 
   if (impossible) {
@@ -116,6 +152,7 @@ export async function getRecommendations(env: UserEnvironment): Promise<Recommen
       noPlantationReasons: reasons,
       noDirectPlantation: false,
       noDirectPlantationReason: '',
+      weatherOptimization: weatherCriteria.description
     };
   }
 
@@ -134,6 +171,34 @@ export async function getRecommendations(env: UserEnvironment): Promise<Recommen
     const fitsArea = plant.areaSizes.includes(env.areaSize);
     return toleratesPollution && fitsSpace && fitsPlanting && fitsLocation && fitsSunlight && fitsArea;
   });
+
+  // Apply weather-based filtering
+  if (weatherCriteria.prioritizeLowWatering) {
+    matchingPlants = matchingPlants.filter(plant => 
+      plant.wateringFrequency === 'biweekly' || 
+      plant.wateringFrequency === 'monthly' ||
+      plant.difficulty === 'easy'
+    );
+  }
+
+  if (weatherCriteria.prioritizeWaterTolerant) {
+    matchingPlants = matchingPlants.filter(plant => 
+      plant.wateringFrequency === 'weekly' || 
+      plant.wateringFrequency === 'daily'
+    );
+  }
+
+  if (weatherCriteria.prioritizeIndoor) {
+    matchingPlants = matchingPlants.filter(plant => 
+      plant.locations.includes('indoor')
+    );
+  }
+
+  if (weatherCriteria.prioritizeHighPollutionTolerance) {
+    matchingPlants = matchingPlants.filter(plant => 
+      plant.pollutionTolerance.includes('high')
+    );
+  }
 
   // Step 2: If results < 5, ignore area
   if (matchingPlants.length < 5) {
@@ -258,6 +323,7 @@ export async function getRecommendations(env: UserEnvironment): Promise<Recommen
     noPlantationReasons: [],
     noDirectPlantation: noDirectPlant,
     noDirectPlantationReason: noDirectReason,
+    weatherOptimization: weatherCriteria.description
   };
 }
 
