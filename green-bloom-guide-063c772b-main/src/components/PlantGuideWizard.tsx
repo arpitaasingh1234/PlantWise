@@ -6,8 +6,11 @@ import PlantCard from '@/components/PlantCard';
 import { plants } from '@/data/plants';
 import type { Location, SunlightLevel, Plant, PollutionLevel, AreaSize } from '@/data/plants';
 import { useSavedPlants } from '@/hooks/useSavedPlants';
+import { getWeatherData, type WeatherData } from '@/services/weatherService';
 
-type WizardStep = 'welcome' | 'location' | 'sunlight' | 'area' | 'photo' | 'results';
+type WizardStep = 'welcome' | 'location' | 'sunlight' | 'area' | 'weather' | 'photo' | 'results';
+
+type WeatherType = 'hot-dry' | 'rainy-humid' | 'cold-frost' | 'normal';
 
 const motivationalQuotes = [
   "Hi Plant Lover 🌱 Let's find the perfect plant for your space!",
@@ -101,6 +104,8 @@ const PlantGuideWizard = ({ onClose, pollutionLevel, aqi }: PlantGuideWizardProp
 
   const [step, setStep] = useState<WizardStep>('welcome');
   const [showConfetti, setShowConfetti] = useState(false);
+  const [weather, setWeather] = useState<WeatherData | null>(null);
+  const [selectedWeather, setSelectedWeather] = useState<WeatherType>('normal');
   const [location, setLocation] = useState<Location | null>(saved.location || null);
   const [sunlight, setSunlight] = useState<SunlightLevel | null>(saved.sunlight || null);
   const [areaSize, setAreaSize] = useState<AreaSize | null>(saved.areaSize || null);
@@ -110,6 +115,20 @@ const PlantGuideWizard = ({ onClose, pollutionLevel, aqi }: PlantGuideWizardProp
   const { savedPlantNames, toggleSave } = useSavedPlants();
 
   const quoteIndex = useRef(Math.floor(Math.random() * motivationalQuotes.length)).current;
+
+  // Fetch weather data on component mount
+  useEffect(() => {
+    const fetchWeather = async () => {
+      try {
+        const weatherData = await getWeatherData();
+        setWeather(weatherData);
+      } catch (error) {
+        console.error('Failed to fetch weather:', error);
+      }
+    };
+    
+    fetchWeather();
+  }, []);
 
   const isHighPollution = pollutionLevel === 'high';
 
@@ -123,27 +142,70 @@ const PlantGuideWizard = ({ onClose, pollutionLevel, aqi }: PlantGuideWizardProp
   }, [location, sunlight, areaSize]);
 
   const generateResults = useCallback(() => {
-    let filtered = plants.filter((p) => {
-      const fitsLocation = location ? p.locations.includes(location) : true;
-      const fitsSunlight = sunlight ? p.sunlight.includes(sunlight) : true;
-      const fitsArea = areaSize ? p.areaSizes.includes(areaSize) : true;
-      return fitsLocation && fitsSunlight && fitsArea;
+    // Score each plant based on all conditions
+    const scoredPlants = plants.map((plant) => {
+      let score = 0;
+      
+      // +1 for each matched condition
+      if (location && plant.locations.includes(location)) score++;
+      if (sunlight && plant.sunlight.includes(sunlight)) score++;
+      if (areaSize && plant.areaSizes.includes(areaSize)) score++;
+      
+      // +1 if matches weather preference
+      if (selectedWeather === 'hot-dry') {
+        if (plant.wateringFrequency === 'biweekly' || plant.wateringFrequency === 'monthly' || plant.difficulty === 'easy') score++;
+        if (plant.pollutionTolerance.includes('high')) score++;
+      } else if (selectedWeather === 'rainy-humid') {
+        if (plant.wateringFrequency === 'weekly' || plant.wateringFrequency === 'daily') score++;
+      } else if (selectedWeather === 'cold-frost') {
+        if (plant.locations.includes('indoor')) score++;
+      }
+      // Normal weather: no extra score needed
+      
+      // For high pollution, add bonus points
+      if (isHighPollution) {
+        if (plant.airPurifying) score += 2;
+        if (plant.pollutionTolerance.includes('high')) score += 1;
+      }
+      
+      return { plant, score };
     });
 
-    // For high pollution, prioritize air-purifying and pollution-tolerant plants
-    if (isHighPollution) {
-      filtered = filtered.filter(p => p.pollutionTolerance.includes('high') || p.airPurifying);
-      filtered.sort((a, b) => {
-        const scoreA = (a.airPurifying ? 20 : 0) + a.survivalRate;
-        const scoreB = (b.airPurifying ? 20 : 0) + b.survivalRate;
-        return scoreB - scoreA;
-      });
-    } else {
-      filtered.sort((a, b) => b.survivalRate - a.survivalRate);
+    // Sort by score (highest first)
+    scoredPlants.sort((a, b) => b.score - a.score);
+    
+    // Get top plants and ensure they have images
+    let filtered = scoredPlants.map(item => ({
+      ...item.plant,
+      imageUrl: item.plant.imageUrl || `https://source.unsplash.com/featured/?plant,${encodeURIComponent(item.plant.name)}`
+    }));
+    
+    // Ensure we have at least 5 plants
+    if (filtered.length < 5) {
+      // Add more plants based on pollution tolerance if needed
+      const additionalPlants = plants.filter(plant => 
+        !filtered.some(p => p.id === plant.id) && 
+        (isHighPollution ? plant.pollutionTolerance.includes('high') : true)
+      ).slice(0, 5 - filtered.length).map(plant => ({
+        ...plant,
+        imageUrl: plant.imageUrl || `https://source.unsplash.com/featured/?plant,${encodeURIComponent(plant.name)}`
+      }));
+      
+      filtered = [...filtered, ...additionalPlants];
+    }
+    
+    // Final fallback - if still less than 5, add any plants
+    if (filtered.length < 5) {
+      const anyPlants = plants.filter(plant => !filtered.some(p => p.id === plant.id)).slice(0, 5 - filtered.length).map(plant => ({
+        ...plant,
+        imageUrl: plant.imageUrl || `https://source.unsplash.com/featured/?plant,${encodeURIComponent(plant.name)}`
+      }));
+      
+      filtered = [...filtered, ...anyPlants];
     }
 
     setResults(filtered.slice(0, 6));
-  }, [location, sunlight, areaSize, isHighPollution]);
+  }, [location, sunlight, areaSize, selectedWeather, isHighPollution]);
 
   const handleFile = (file: File) => {
     if (!file.type.startsWith('image/')) {
@@ -177,8 +239,8 @@ const PlantGuideWizard = ({ onClose, pollutionLevel, aqi }: PlantGuideWizardProp
 
   const handleDragLeave = () => setIsDragging(false);
 
-  const flow: WizardStep[] = ['welcome', 'location', 'sunlight', 'area', 'photo', 'results'];
-  const totalSteps = 4; // location, sunlight, area, photo
+  const flow: WizardStep[] = ['welcome', 'location', 'sunlight', 'area', 'weather', 'photo', 'results'];
+  const totalSteps = 5; // location, sunlight, area, weather, photo
 
   const goNext = () => {
     const idx = flow.indexOf(step);
@@ -203,9 +265,10 @@ const PlantGuideWizard = ({ onClose, pollutionLevel, aqi }: PlantGuideWizardProp
     (step === 'location' && location) ||
     (step === 'sunlight' && sunlight) ||
     (step === 'area' && areaSize) ||
+    (step === 'weather' && selectedWeather) ||
     step === 'photo';
 
-  const stepNumber = step === 'location' ? 1 : step === 'sunlight' ? 2 : step === 'area' ? 3 : step === 'photo' ? 4 : 0;
+  const stepNumber = step === 'location' ? 1 : step === 'sunlight' ? 2 : step === 'area' ? 3 : step === 'weather' ? 4 : step === 'photo' ? 5 : 0;
 
   return (
     <motion.div
@@ -258,20 +321,35 @@ const PlantGuideWizard = ({ onClose, pollutionLevel, aqi }: PlantGuideWizardProp
                 Answer a few quick questions and we'll recommend the best plants for your exact environment.
               </motion.p>
 
-              {/* Show AQI badge if available */}
-              {aqi !== null && aqi !== undefined && (
-                <motion.div
-                  initial={{ opacity: 0, scale: 0.9 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  transition={{ delay: 0.4 }}
-                  className={`inline-flex items-center gap-2 px-4 py-2 rounded-full text-xs font-semibold mb-6 ${
-                    isHighPollution ? 'eco-badge-high' : pollutionLevel === 'medium' ? 'eco-badge-medium' : 'eco-badge-low'
-                  }`}
-                >
-                  <Wind className="w-3.5 h-3.5" />
-                  AQI {aqi} — {isHighPollution ? "We'll prioritize air-purifying plants!" : 'Great air quality!'}
-                </motion.div>
-              )}
+              {/* Show weather and AQI badges if available */}
+              {(aqi !== null && aqi !== undefined) || weather ? (
+                <div className="flex flex-wrap gap-2 justify-center">
+                  {aqi !== null && aqi !== undefined && (
+                    <motion.div
+                      initial={{ opacity: 0, scale: 0.9 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      transition={{ delay: 0.4 }}
+                      className={`inline-flex items-center gap-2 px-4 py-2 rounded-full text-xs font-semibold mb-6 ${
+                        isHighPollution ? 'eco-badge-high' : pollutionLevel === 'medium' ? 'eco-badge-medium' : 'eco-badge-low'
+                      }`}
+                    >
+                      <Wind className="w-3.5 h-3.5" />
+                      AQI {aqi} — {isHighPollution ? "We'll prioritize air-purifying plants!" : 'Great air quality!'}
+                    </motion.div>
+                  )}
+                  {weather && (
+                    <motion.div
+                      initial={{ opacity: 0, scale: 0.9 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      transition={{ delay: 0.5 }}
+                      className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-xs font-semibold mb-6 bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-100"
+                    >
+                      <CloudSun className="w-3.5 h-3.5" />
+                      Weather: {weather.temperature}°C ({weather.condition.charAt(0).toUpperCase() + weather.condition.slice(1)})
+                    </motion.div>
+                  )}
+                </div>
+              ) : null}
 
               <motion.button
                 initial={{ opacity: 0, y: 10 }}
@@ -417,7 +495,58 @@ const PlantGuideWizard = ({ onClose, pollutionLevel, aqi }: PlantGuideWizardProp
             </motion.div>
           )}
 
-          {/* ── Step 4: Photo (drag & drop) ── */}
+          {/* ── Step 4: Weather Selection ── */}
+          {step === 'weather' && (
+            <motion.div key="weather" {...fadeSlide}>
+              <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1">Step {stepNumber} of {totalSteps}</p>
+              <h2 className="font-display text-xl font-bold text-foreground mb-2">
+                Select Current Weather 🌦️
+              </h2>
+              <p className="text-sm text-muted-foreground mb-6">Choose the weather in your area for better plant suggestions</p>
+
+              <div className="grid grid-cols-2 gap-3">
+                {([
+                  { value: 'hot-dry' as WeatherType, label: 'Hot & Dry', desc: 'High temperature • Less water plants', emoji: '☀️' },
+                  { value: 'rainy-humid' as WeatherType, label: 'Rainy / Humid', desc: 'Frequent rain • Moisture loving plants', emoji: '🌧️' },
+                  { value: 'cold-frost' as WeatherType, label: 'Cold / Frost', desc: 'Low temperature • Indoor plants preferred', emoji: '❄️' },
+                  { value: 'normal' as WeatherType, label: 'Normal', desc: 'Balanced weather • Most plants suitable', emoji: '🌤️' },
+                ] as const).map((opt) => (
+                  <motion.button
+                    key={opt.value}
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    onClick={() => setSelectedWeather(opt.value)}
+                    className={`eco-card p-5 text-left transition-all duration-200 ${
+                      selectedWeather === opt.value
+                        ? 'ring-2 ring-primary border-primary bg-accent/50'
+                        : 'hover:border-primary/30'
+                    }`}
+                  >
+                    <div className="flex items-center gap-3">
+                      <span className="text-2xl">{opt.emoji}</span>
+                      <div>
+                        <p className="font-bold text-foreground text-sm">{opt.label}</p>
+                        <p className="text-xs text-muted-foreground mt-0.5">{opt.desc}</p>
+                      </div>
+                    </div>
+                  </motion.button>
+                ))}
+              </div>
+
+              {selectedWeather === 'hot-dry' && (
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="mt-4 p-3 rounded-xl bg-accent/50 border border-primary/10 flex items-start gap-2"
+                >
+                  <Sun className="w-4 h-4 text-primary mt-0.5 flex-shrink-0" />
+                  <p className="text-xs text-foreground/80">Hot weather is perfect for drought-tolerant plants like Snake Plant, Aloe Vera, and succulents!</p>
+                </motion.div>
+              )}
+            </motion.div>
+          )}
+
+          {/* ── Step 5: Photo Upload ── */}
           {step === 'photo' && (
             <motion.div key="photo" {...fadeSlide}>
               <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1">Step {stepNumber} of {totalSteps}</p>
@@ -478,9 +607,19 @@ const PlantGuideWizard = ({ onClose, pollutionLevel, aqi }: PlantGuideWizardProp
                   <h2 className="font-display text-xl font-bold text-foreground">
                     Your Plant Matches ({results.length})
                   </h2>
-                  {isHighPollution && (
-                    <p className="text-xs text-primary font-medium">Prioritized for high-pollution areas</p>
-                  )}
+                  <div className="flex flex-col gap-1">
+                    {isHighPollution && (
+                      <p className="text-xs text-primary font-medium">Prioritized for high-pollution areas</p>
+                    )}
+                    <p className="text-xs text-green-600 dark:text-green-400 font-medium">
+                      Based on selected weather, showing optimized plants
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      Weather: {selectedWeather === 'hot-dry' ? 'Hot & Dry' : 
+                               selectedWeather === 'rainy-humid' ? 'Rainy / Humid' : 
+                               selectedWeather === 'cold-frost' ? 'Cold / Frost' : 'Normal'}
+                    </p>
+                  </div>
                 </div>
               </div>
 
@@ -531,10 +670,178 @@ const PlantGuideWizard = ({ onClose, pollutionLevel, aqi }: PlantGuideWizardProp
                 </div>
               ) : (
                 <div className="text-center py-10">
+                  {console.log("No match UI triggered")}
                   <TreePine className="w-10 h-10 mx-auto mb-3 text-muted-foreground/40" />
-                  <p className="text-sm text-muted-foreground">No matches found — try different conditions.</p>
+                  <p className="text-sm text-muted-foreground">No perfect matches found — try different conditions.</p>
+                  
+                  {/* Smart Planting Ideas */}
+                  <div className="mt-8">
+                    <h3 className="font-display text-lg font-bold text-foreground mb-4">
+                      Try These Smart Planting Ideas 🌱
+                    </h3>
+                    <div className="grid grid-cols-2 gap-3">
+                      {[
+                        { 
+                          title: 'Vertical Gardening 🌿', 
+                          desc: 'Use wall-mounted pots to grow plants in small spaces',
+                          icon: '🌿'
+                        },
+                        { 
+                          title: 'Hanging Plants 🪴', 
+                          desc: 'Hang plants near windows or balconies',
+                          icon: '🪴'
+                        },
+                        { 
+                          title: 'Small Indoor Plants 🌱', 
+                          desc: 'Try Snake Plant, Money Plant, ZZ Plant',
+                          icon: '🌱'
+                        },
+                        { 
+                          title: 'Hydroponics 💧', 
+                          desc: 'Grow plants in water without soil',
+                          icon: '💧'
+                        }
+                      ].map((solution, i) => (
+                        <motion.div
+                          key={i}
+                          initial={{ opacity: 0, y: 10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ delay: 0.1 * i }}
+                          className="eco-card p-4 text-left transition-all duration-200 hover:border-primary/30"
+                        >
+                          <div className="flex items-center gap-3">
+                            <span className="text-2xl">{solution.icon}</span>
+                            <div>
+                              <p className="font-bold text-foreground text-sm">{solution.title}</p>
+                              <p className="text-xs text-muted-foreground mt-0.5">{solution.desc}</p>
+                            </div>
+                          </div>
+                        </motion.div>
+                      ))}
+                    </div>
+                    
+                    {/* Minimal Condition Plants */}
+                    <div className="mt-6 p-4 rounded-2xl bg-accent/40 border border-primary/10">
+                      <div className="flex items-center gap-2 mb-3">
+                        <Leaf className="w-4 h-4 text-primary" />
+                        <h4 className="text-sm font-bold text-foreground">Hardy Plants That Grow Anywhere</h4>
+                      </div>
+                      <div className="text-xs text-muted-foreground space-y-1">
+                        <p>These plants need minimal conditions and are very forgiving:</p>
+                        <ul className="mt-2 space-y-1">
+                          <li>• <strong>Snake Plant</strong> - Thrives in low light, needs little water</li>
+                          <li>• <strong>ZZ Plant</strong> - Almost indestructible, tolerates neglect</li>
+                          <li>• <strong>Money Plant</strong> - Adapts to various light conditions</li>
+                        </ul>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               )}
+
+              {/* ── Recommended Soil ── */}
+              <div className="mt-6">
+                <div className="flex items-center gap-2.5 mb-4">
+                  <div className="p-2 rounded-xl bg-green-100 dark:bg-green-900/20">
+                    <Leaf className="w-5 h-5 text-green-600 dark:text-green-400" />
+                  </div>
+                  <div>
+                    <h3 className="font-display text-lg font-bold text-foreground">
+                      Recommended Soil 🌱
+                    </h3>
+                    <p className="text-xs text-muted-foreground">
+                      Based on {selectedWeather === 'hot-dry' ? 'Hot & Dry' : 
+                               selectedWeather === 'rainy-humid' ? 'Rainy / Humid' : 
+                               selectedWeather === 'cold-frost' ? 'Cold / Frost' : 'Normal'} weather
+                    </p>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  {selectedWeather === 'hot-dry' && [
+                    { name: 'Sandy Soil', desc: 'Prevents water retention, avoids root rot', emoji: '🏖️' },
+                    { name: 'Well-drained Soil', desc: 'Prevents water retention, avoids root rot', emoji: '💧' }
+                  ].map((soil, i) => (
+                    <motion.div
+                      key={i}
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.1 * i }}
+                      className="eco-card p-4 text-left transition-all duration-200 hover:border-primary/30"
+                    >
+                      <div className="flex items-center gap-3">
+                        <span className="text-2xl">{soil.emoji}</span>
+                        <div>
+                          <p className="font-bold text-foreground text-sm">{soil.name}</p>
+                          <p className="text-xs text-muted-foreground mt-0.5">{soil.desc}</p>
+                        </div>
+                      </div>
+                    </motion.div>
+                  ))}
+
+                  {selectedWeather === 'rainy-humid' && [
+                    { name: 'Loamy Soil', desc: 'Balances water, avoids excess moisture', emoji: '🌾' },
+                    { name: 'Moisture-control Soil', desc: 'Balances water, avoids excess moisture', emoji: '🌊' }
+                  ].map((soil, i) => (
+                    <motion.div
+                      key={i}
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.1 * i }}
+                      className="eco-card p-4 text-left transition-all duration-200 hover:border-primary/30"
+                    >
+                      <div className="flex items-center gap-3">
+                        <span className="text-2xl">{soil.emoji}</span>
+                        <div>
+                          <p className="font-bold text-foreground text-sm">{soil.name}</p>
+                          <p className="text-xs text-muted-foreground mt-0.5">{soil.desc}</p>
+                        </div>
+                      </div>
+                    </motion.div>
+                  ))}
+
+                  {selectedWeather === 'cold-frost' && [
+                    { name: 'Nutrient-rich Soil', desc: 'Supports growth in low temperature', emoji: '🌿' },
+                    { name: 'Indoor Potting Mix', desc: 'Supports growth in low temperature', emoji: '🪴' }
+                  ].map((soil, i) => (
+                    <motion.div
+                      key={i}
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.1 * i }}
+                      className="eco-card p-4 text-left transition-all duration-200 hover:border-primary/30"
+                    >
+                      <div className="flex items-center gap-3">
+                        <span className="text-2xl">{soil.emoji}</span>
+                        <div>
+                          <p className="font-bold text-foreground text-sm">{soil.name}</p>
+                          <p className="text-xs text-muted-foreground mt-0.5">{soil.desc}</p>
+                        </div>
+                      </div>
+                    </motion.div>
+                  ))}
+
+                  {selectedWeather === 'normal' && [
+                    { name: 'Standard Garden Soil', desc: 'Suitable for most plants', emoji: '🌱' }
+                  ].map((soil, i) => (
+                    <motion.div
+                      key={i}
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.1 * i }}
+                      className="eco-card p-4 text-left transition-all duration-200 hover:border-primary/30"
+                    >
+                      <div className="flex items-center gap-3">
+                        <span className="text-2xl">{soil.emoji}</span>
+                        <div>
+                          <p className="font-bold text-foreground text-sm">{soil.name}</p>
+                          <p className="text-xs text-muted-foreground mt-0.5">{soil.desc}</p>
+                        </div>
+                      </div>
+                    </motion.div>
+                  ))}
+                </div>
+              </div>
             </motion.div>
           )}
         </AnimatePresence>
