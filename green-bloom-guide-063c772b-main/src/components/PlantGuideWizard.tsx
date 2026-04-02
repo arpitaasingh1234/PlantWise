@@ -670,10 +670,178 @@ const PlantGuideWizard = ({ onClose, pollutionLevel, aqi }: PlantGuideWizardProp
                 </div>
               ) : (
                 <div className="text-center py-10">
+                  {console.log("No match UI triggered")}
                   <TreePine className="w-10 h-10 mx-auto mb-3 text-muted-foreground/40" />
-                  <p className="text-sm text-muted-foreground">No matches found — try different conditions.</p>
+                  <p className="text-sm text-muted-foreground">No perfect matches found — try different conditions.</p>
+                  
+                  {/* Smart Planting Ideas */}
+                  <div className="mt-8">
+                    <h3 className="font-display text-lg font-bold text-foreground mb-4">
+                      Try These Smart Planting Ideas 🌱
+                    </h3>
+                    <div className="grid grid-cols-2 gap-3">
+                      {[
+                        { 
+                          title: 'Vertical Gardening 🌿', 
+                          desc: 'Use wall-mounted pots to grow plants in small spaces',
+                          icon: '🌿'
+                        },
+                        { 
+                          title: 'Hanging Plants 🪴', 
+                          desc: 'Hang plants near windows or balconies',
+                          icon: '🪴'
+                        },
+                        { 
+                          title: 'Small Indoor Plants 🌱', 
+                          desc: 'Try Snake Plant, Money Plant, ZZ Plant',
+                          icon: '🌱'
+                        },
+                        { 
+                          title: 'Hydroponics 💧', 
+                          desc: 'Grow plants in water without soil',
+                          icon: '💧'
+                        }
+                      ].map((solution, i) => (
+                        <motion.div
+                          key={i}
+                          initial={{ opacity: 0, y: 10 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          transition={{ delay: 0.1 * i }}
+                          className="eco-card p-4 text-left transition-all duration-200 hover:border-primary/30"
+                        >
+                          <div className="flex items-center gap-3">
+                            <span className="text-2xl">{solution.icon}</span>
+                            <div>
+                              <p className="font-bold text-foreground text-sm">{solution.title}</p>
+                              <p className="text-xs text-muted-foreground mt-0.5">{solution.desc}</p>
+                            </div>
+                          </div>
+                        </motion.div>
+                      ))}
+                    </div>
+                    
+                    {/* Minimal Condition Plants */}
+                    <div className="mt-6 p-4 rounded-2xl bg-accent/40 border border-primary/10">
+                      <div className="flex items-center gap-2 mb-3">
+                        <Leaf className="w-4 h-4 text-primary" />
+                        <h4 className="text-sm font-bold text-foreground">Hardy Plants That Grow Anywhere</h4>
+                      </div>
+                      <div className="text-xs text-muted-foreground space-y-1">
+                        <p>These plants need minimal conditions and are very forgiving:</p>
+                        <ul className="mt-2 space-y-1">
+                          <li>• <strong>Snake Plant</strong> - Thrives in low light, needs little water</li>
+                          <li>• <strong>ZZ Plant</strong> - Almost indestructible, tolerates neglect</li>
+                          <li>• <strong>Money Plant</strong> - Adapts to various light conditions</li>
+                        </ul>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               )}
+
+              {/* ── Recommended Soil ── */}
+              <div className="mt-6">
+                <div className="flex items-center gap-2.5 mb-4">
+                  <div className="p-2 rounded-xl bg-green-100 dark:bg-green-900/20">
+                    <Leaf className="w-5 h-5 text-green-600 dark:text-green-400" />
+                  </div>
+                  <div>
+                    <h3 className="font-display text-lg font-bold text-foreground">
+                      Recommended Soil 🌱
+                    </h3>
+                    <p className="text-xs text-muted-foreground">
+                      Based on {selectedWeather === 'hot-dry' ? 'Hot & Dry' : 
+                               selectedWeather === 'rainy-humid' ? 'Rainy / Humid' : 
+                               selectedWeather === 'cold-frost' ? 'Cold / Frost' : 'Normal'} weather
+                    </p>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  {selectedWeather === 'hot-dry' && [
+                    { name: 'Sandy Soil', desc: 'Prevents water retention, avoids root rot', emoji: '🏖️' },
+                    { name: 'Well-drained Soil', desc: 'Prevents water retention, avoids root rot', emoji: '💧' }
+                  ].map((soil, i) => (
+                    <motion.div
+                      key={i}
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.1 * i }}
+                      className="eco-card p-4 text-left transition-all duration-200 hover:border-primary/30"
+                    >
+                      <div className="flex items-center gap-3">
+                        <span className="text-2xl">{soil.emoji}</span>
+                        <div>
+                          <p className="font-bold text-foreground text-sm">{soil.name}</p>
+                          <p className="text-xs text-muted-foreground mt-0.5">{soil.desc}</p>
+                        </div>
+                      </div>
+                    </motion.div>
+                  ))}
+
+                  {selectedWeather === 'rainy-humid' && [
+                    { name: 'Loamy Soil', desc: 'Balances water, avoids excess moisture', emoji: '🌾' },
+                    { name: 'Moisture-control Soil', desc: 'Balances water, avoids excess moisture', emoji: '🌊' }
+                  ].map((soil, i) => (
+                    <motion.div
+                      key={i}
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.1 * i }}
+                      className="eco-card p-4 text-left transition-all duration-200 hover:border-primary/30"
+                    >
+                      <div className="flex items-center gap-3">
+                        <span className="text-2xl">{soil.emoji}</span>
+                        <div>
+                          <p className="font-bold text-foreground text-sm">{soil.name}</p>
+                          <p className="text-xs text-muted-foreground mt-0.5">{soil.desc}</p>
+                        </div>
+                      </div>
+                    </motion.div>
+                  ))}
+
+                  {selectedWeather === 'cold-frost' && [
+                    { name: 'Nutrient-rich Soil', desc: 'Supports growth in low temperature', emoji: '🌿' },
+                    { name: 'Indoor Potting Mix', desc: 'Supports growth in low temperature', emoji: '🪴' }
+                  ].map((soil, i) => (
+                    <motion.div
+                      key={i}
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.1 * i }}
+                      className="eco-card p-4 text-left transition-all duration-200 hover:border-primary/30"
+                    >
+                      <div className="flex items-center gap-3">
+                        <span className="text-2xl">{soil.emoji}</span>
+                        <div>
+                          <p className="font-bold text-foreground text-sm">{soil.name}</p>
+                          <p className="text-xs text-muted-foreground mt-0.5">{soil.desc}</p>
+                        </div>
+                      </div>
+                    </motion.div>
+                  ))}
+
+                  {selectedWeather === 'normal' && [
+                    { name: 'Standard Garden Soil', desc: 'Suitable for most plants', emoji: '🌱' }
+                  ].map((soil, i) => (
+                    <motion.div
+                      key={i}
+                      initial={{ opacity: 0, y: 10 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.1 * i }}
+                      className="eco-card p-4 text-left transition-all duration-200 hover:border-primary/30"
+                    >
+                      <div className="flex items-center gap-3">
+                        <span className="text-2xl">{soil.emoji}</span>
+                        <div>
+                          <p className="font-bold text-foreground text-sm">{soil.name}</p>
+                          <p className="text-xs text-muted-foreground mt-0.5">{soil.desc}</p>
+                        </div>
+                      </div>
+                    </motion.div>
+                  ))}
+                </div>
+              </div>
             </motion.div>
           )}
         </AnimatePresence>

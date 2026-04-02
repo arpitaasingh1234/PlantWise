@@ -109,7 +109,7 @@ const Dashboard = () => {
     setRecsLoading(true);
     setHasGenerated(true);
     try {
-      const recs = await getRecommendations({ pollutionLevel, spaceType, plantingType, location, sunlight, areaSize });
+      const recs = await getRecommendations({ pollutionLevel, spaceType, plantingType, location, sunlight, areaSize, weather: 'normal' });
       setResults(recs);
     } catch {
       toast.error('Failed to generate recommendations.');
