@@ -1,7 +1,6 @@
 import { plants, soilRecommendations, type Plant, type PollutionLevel, type SpaceType, type PlantingType, type Location, type SunlightLevel, type SoilRecommendation, type AreaSize } from '@/data/plants';
 import { fetchSurvivalFromML } from './mlApi';
-import { loadPollutionDataFromCSV } from '@/data/dataLoader';
-import { getWeatherData, getWeatherBasedCriteria, type WeatherData } from '@/services/weatherService';
+import { loadPollutionDataFromCSV, loadPlantsFromCSV } from '@/data/dataLoader';
 
 export interface UserEnvironment {
   pollutionLevel: PollutionLevel;
@@ -39,19 +38,20 @@ const areaSizeLabels: Record<AreaSize, string> = {
 
 function generateReason(plant: Plant, env: UserEnvironment, survivalScore: number): string {
   const reasons: string[] = [];
+  const selectedWeather = env.weather || 'normal';
 
-  // Only include reasons for conditions that actually match
-  if (plant.sunlight.includes(env.sunlight)) {
-    reasons.push(`matches your ${env.sunlight} sunlight`);
+  // Focus on mandatory matches for description
+  if (plant.locations.includes(env.location) && plant.sunlight.includes(env.sunlight)) {
+    reasons.push(`matches your ${env.location} and ${env.sunlight} conditions`);
+  } else if (plant.locations.includes(env.location)) {
+    reasons.push(`matches your ${env.location} conditions`);
+  } else if (plant.sunlight.includes(env.sunlight)) {
+    reasons.push(`matches your ${env.sunlight} conditions`);
   }
-  if (plant.locations.includes(env.location)) {
-    reasons.push(`fits your ${env.location} space`);
-  }
+
+  // Add secondary conditions if they match
   if (plant.areaSizes.includes(env.areaSize)) {
     reasons.push(`suitable for ${areaSizeLabels[env.areaSize]}`);
-  }
-  if (plant.spaceTypes.includes(env.spaceType)) {
-    reasons.push(`ideal for ${env.spaceType} environments`);
   }
   if (plant.plantingTypes.includes(env.plantingType)) {
     reasons.push(`works with ${env.plantingType} planting`);
@@ -69,13 +69,13 @@ function generateReason(plant: Plant, env: UserEnvironment, survivalScore: numbe
   }
 
   // Add weather-specific reasons
-  if (env.weather === 'hot-dry' && (plant.wateringFrequency === 'biweekly' || plant.wateringFrequency === 'monthly')) {
+  if (selectedWeather === 'hot-dry' && (plant.wateringFrequency === 'biweekly' || plant.wateringFrequency === 'monthly')) {
     reasons.push('drought-tolerant');
   }
-  if (env.weather === 'rainy-humid' && (plant.wateringFrequency === 'weekly' || plant.wateringFrequency === 'daily')) {
+  if (selectedWeather === 'rainy-humid' && (plant.wateringFrequency === 'weekly' || plant.wateringFrequency === 'daily')) {
     reasons.push('moisture-loving');
   }
-  if (env.weather === 'cold-frost' && plant.locations.includes('indoor')) {
+  if (selectedWeather === 'cold-frost' && plant.locations.includes('indoor')) {
     reasons.push('cold-tolerant indoor plant');
   }
 
@@ -178,135 +178,99 @@ export async function getRecommendations(env: UserEnvironment): Promise<Recommen
 
   const { noDirectPlant, reason: noDirectReason } = checkNoDirectPlantation(env);
 
+  if (noDirectPlant) {
+    return {
+      recommended: [],
+      avoid: [],
+      soilMix: [],
+      noPlantation: true,
+      noPlantationReasons: [noDirectReason],
+      noDirectPlantation: false,
+      noDirectPlantationReason: '',
+      weatherOptimization: weatherCriteria.description
+    };
+  }
+
   // STRICT MATCHING - Accuracy over quantity
   let recommendedPlants: Plant[] = [];
+  
+  // Load plants from CSV data
+  const allPlants = await loadPlantsFromCSV();
+  console.log("Using local CSV dataset for plant recommendations");
 
-  // HARD FILTER - MUST match ALL core conditions
-  recommendedPlants = plants.filter(plant => {
-    // Core conditions that MUST match
-    const matchesLocation = plant.locations.includes(env.location); // indoorOutdoor
-    const matchesSunlight = plant.sunlight.includes(env.sunlight);
-    const matchesSpaceType = plant.spaceTypes.includes(env.spaceType); // place
+  // CONFIDENCE SCORING SYSTEM
+  const scoredPlants = allPlants.map(plant => {
+    let score = 0;
     
-    // ALL core conditions must match - if ANY fails, remove plant
-    return matchesLocation && matchesSunlight && matchesSpaceType;
+    // MANDATORY MATCHES (highest weight)
+    if (plant.locations.includes(env.location)) score += 2; // indoorOutdoor
+    if (plant.sunlight.includes(env.sunlight)) score += 2; // sunlight
+    
+    // SECONDARY MATCHES (lower weight)
+    if (plant.plantingTypes.includes(env.plantingType)) score += 1; // soil
+    if (plant.areaSizes.includes(env.areaSize)) score += 1; // area
+    
+    // WEATHER MATCH
+    if (selectedWeather === 'hot-dry' && (plant.wateringFrequency === 'biweekly' || plant.wateringFrequency === 'monthly' || plant.difficulty === 'easy')) {
+      score += 1;
+    } else if (selectedWeather === 'rainy-humid' && (plant.wateringFrequency === 'weekly' || plant.wateringFrequency === 'daily')) {
+      score += 1;
+    } else if (selectedWeather === 'cold-frost' && plant.locations.includes('indoor')) {
+      score += 1;
+    } else if (selectedWeather === 'normal') {
+      score += 1; // normal weather gets point by default
+    }
+    
+    return { plant, score };
   });
 
-  // SECONDARY FILTER - Match additional conditions if possible
-  if (recommendedPlants.length >= 5) {
-    // Only apply secondary filters if we have enough plants
-    recommendedPlants = recommendedPlants.filter(plant => {
-      const matchesArea = plant.areaSizes.includes(env.areaSize);
-      const matchesPlantingType = plant.plantingTypes.includes(env.plantingType);
-      const toleratesPollution = plant.pollutionTolerance.includes(env.pollutionLevel);
-      
-      return matchesArea && matchesPlantingType && toleratesPollution;
-    });
-  }
+  // MINIMUM CONFIDENCE FILTER - Only score >= 4
+  let highConfidencePlants = scoredPlants.filter(item => item.score >= 4).map(item => item.plant);
 
-  // WEATHER FILTER - Apply after main filtering
-  if (selectedWeather === 'hot-dry') {
-    recommendedPlants = recommendedPlants.filter(plant => 
-      plant.wateringFrequency === 'biweekly' || 
-      plant.wateringFrequency === 'monthly' ||
-      plant.difficulty === 'easy'
-    );
-  } else if (selectedWeather === 'rainy-humid') {
-    recommendedPlants = recommendedPlants.filter(plant => 
-      plant.wateringFrequency === 'weekly' || 
-      plant.wateringFrequency === 'daily'
-    );
-  } else if (selectedWeather === 'cold-frost') {
-    recommendedPlants = recommendedPlants.filter(plant => 
-      plant.locations.includes('indoor')
-    );
-  }
-
-  // SAFE FALLBACK - If less than 5, relax ONLY secondary conditions
-  if (recommendedPlants.length < 5) {
-    // Relax area OR place (one at a time)
-    recommendedPlants = plants.filter(plant => {
-      // Core conditions MUST still match
-      const matchesLocation = plant.locations.includes(env.location);
-      const matchesSunlight = plant.sunlight.includes(env.sunlight);
-      
-      if (!matchesLocation || !matchesSunlight) return false; // Never relax core conditions
-      
-      // Try relaxing area first
-      const matchesSpaceType = plant.spaceTypes.includes(env.spaceType);
-      const matchesPlantingType = plant.plantingTypes.includes(env.plantingType);
-      const toleratesPollution = plant.pollutionTolerance.includes(env.pollutionLevel);
-      
-      return matchesSpaceType && matchesPlantingType && toleratesPollution;
-    });
-
-    // Re-apply weather filter to relaxed results
-    if (selectedWeather === 'hot-dry') {
-      recommendedPlants = recommendedPlants.filter(plant => 
-        plant.wateringFrequency === 'biweekly' || 
-        plant.wateringFrequency === 'monthly' ||
-        plant.difficulty === 'easy'
-      );
-    } else if (selectedWeather === 'rainy-humid') {
-      recommendedPlants = recommendedPlants.filter(plant => 
-        plant.wateringFrequency === 'weekly' || 
-        plant.wateringFrequency === 'daily'
-      );
-    } else if (selectedWeather === 'cold-frost') {
-      recommendedPlants = recommendedPlants.filter(plant => 
-        plant.locations.includes('indoor')
-      );
-    }
-
-    // If still less than 5, try relaxing place instead of area
-    if (recommendedPlants.length < 5) {
-      recommendedPlants = plants.filter(plant => {
-        // Core conditions MUST still match
-        const matchesLocation = plant.locations.includes(env.location);
-        const matchesSunlight = plant.sunlight.includes(env.sunlight);
-        
-        if (!matchesLocation || !matchesSunlight) return false; // Never relax core conditions
-        
-        // Relax place condition
-        const matchesArea = plant.areaSizes.includes(env.areaSize);
-        const matchesPlantingType = plant.plantingTypes.includes(env.plantingType);
-        const toleratesPollution = plant.pollutionTolerance.includes(env.pollutionLevel);
-        
-        return matchesArea && matchesPlantingType && toleratesPollution;
-      });
-
-      // Re-apply weather filter
-      if (selectedWeather === 'hot-dry') {
-        recommendedPlants = recommendedPlants.filter(plant => 
-          plant.wateringFrequency === 'biweekly' || 
-          plant.wateringFrequency === 'monthly' ||
-          plant.difficulty === 'easy'
-        );
-      } else if (selectedWeather === 'rainy-humid') {
-        recommendedPlants = recommendedPlants.filter(plant => 
-          plant.wateringFrequency === 'weekly' || 
-          plant.wateringFrequency === 'daily'
-        );
-      } else if (selectedWeather === 'cold-frost') {
-        recommendedPlants = recommendedPlants.filter(plant => 
-          plant.locations.includes('indoor')
-        );
-      }
-    }
-  }
-
-  // FINAL VERIFICATION - Remove wrong results before showing
-  recommendedPlants = recommendedPlants.filter(plant => {
-    // Double-check core conditions match
+  // FINAL VALIDATION - Double-check mandatory conditions
+  highConfidencePlants = highConfidencePlants.filter(plant => {
     const matchesLocation = plant.locations.includes(env.location);
     const matchesSunlight = plant.sunlight.includes(env.sunlight);
     
-    // If not matching, remove
+    // If false, REMOVE
     return matchesLocation && matchesSunlight;
   });
 
+  // ALWAYS SHOW 5 RESULTS - Add plants that match mandatory conditions
+  if (highConfidencePlants.length < 5) {
+    const additionalPlants = allPlants.filter(plant => {
+      // Must match indoorOutdoor + sunlight
+      const matchesLocation = plant.locations.includes(env.location);
+      const matchesSunlight = plant.sunlight.includes(env.sunlight);
+      
+      // Skip if already in list
+      if (highConfidencePlants.some(p => p.id === plant.id)) return false;
+      
+      return matchesLocation && matchesSunlight;
+    }).slice(0, 5 - highConfidencePlants.length);
+    
+    highConfidencePlants = [...highConfidencePlants, ...additionalPlants];
+  }
+
+  // FINAL VALIDATION - Remove wrong examples
+  highConfidencePlants = highConfidencePlants.filter(plant => {
+    // Example: If indoor + low light, remove outdoor/full sun plants
+    const matchesLocation = plant.locations.includes(env.location);
+    const matchesSunlight = plant.sunlight.includes(env.sunlight);
+    
+    // Specific wrong examples to remove
+    if (env.location === 'indoor' && !plant.locations.includes('indoor')) return false;
+    if (env.location === 'outdoor' && !plant.locations.includes('outdoor')) return false;
+    if (env.sunlight === 'low' && !plant.sunlight.includes('low')) return false;
+    if (env.sunlight === 'full' && !plant.sunlight.includes('full')) return false;
+    
+    return matchesLocation && matchesSunlight;
+  });
+
+  recommendedPlants = highConfidencePlants.slice(0, 6);
+
   // AVOID LIST - Plants that fail core conditions
-  const avoidPlants = plants.filter(plant => {
+  const avoidPlants = allPlants.filter(plant => {
     // Skip plants already in recommended list
     if (recommendedPlants.some(rec => rec.id === plant.id)) return false;
 
@@ -320,7 +284,7 @@ export async function getRecommendations(env: UserEnvironment): Promise<Recommen
   }).slice(0, 3);
 
   // Fetch ML survival scores in parallel
-  const scoredPlants: RecommendedPlant[] = await Promise.all(
+  const finalPlants: RecommendedPlant[] = await Promise.all(
     recommendedPlants.slice(0, 10).map(async (plant) => {
       const survivalScore = await fetchSurvivalFromML(env, plant);
       return {
@@ -334,7 +298,7 @@ export async function getRecommendations(env: UserEnvironment): Promise<Recommen
   );
 
   // Sort by match score, survivalScore and airPurifying priority
-  scoredPlants.sort((a, b) => {
+  finalPlants.sort((a, b) => {
     const scoreA = calculateMatchScore(a, env) * 10 + (a.airPurifying ? 10 : 0) + a.survivalScore / 10;
     const scoreB = calculateMatchScore(b, env) * 10 + (b.airPurifying ? 10 : 0) + b.survivalScore / 10;
     return scoreB - scoreA;
@@ -345,7 +309,8 @@ export async function getRecommendations(env: UserEnvironment): Promise<Recommen
   // Enhanced soil recommendations based on planting type and weather
   const enhancedSoilMix = soilMix.filter(soil => {
     // Weather-based filtering
-    if (env.weather === 'hot-dry') {
+    const selectedWeather = env.weather || 'normal';
+    if (selectedWeather === 'hot-dry') {
       const soilName = soil.name.toLowerCase();
       return soilName.includes('sandy') || 
              soilName.includes('well-drained') ||
@@ -353,7 +318,7 @@ export async function getRecommendations(env: UserEnvironment): Promise<Recommen
              soilName.includes('succulent');
     }
     
-    if (env.weather === 'rainy-humid') {
+    if (selectedWeather === 'rainy-humid') {
       const soilName = soil.name.toLowerCase();
       return soilName.includes('loamy') || 
              soilName.includes('moisture') ||
@@ -361,7 +326,7 @@ export async function getRecommendations(env: UserEnvironment): Promise<Recommen
              soilName.includes('control');
     }
     
-    if (env.weather === 'cold-frost') {
+    if (selectedWeather === 'cold-frost') {
       const soilName = soil.name.toLowerCase();
       return soilName.includes('nutrient') || 
              soilName.includes('rich') ||
@@ -389,7 +354,7 @@ export async function getRecommendations(env: UserEnvironment): Promise<Recommen
   });
 
   return {
-    recommended: scoredPlants,
+    recommended: finalPlants,
     avoid: avoidPlants,
     soilMix: enhancedSoilMix,
     noPlantation: false,

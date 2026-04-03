@@ -1,5 +1,6 @@
 // API Service - Fetch plants from backend API
 import type { Plant, SoilRecommendation } from '@/data/plants';
+import { loadPlantsFromCSV } from './dataLoader';
 
 export interface ApiResponse<T> {
   success: boolean;
@@ -11,12 +12,26 @@ export interface ApiResponse<T> {
 
 // Fetch all plants from API (CSV + community plants)
 export async function fetchPlantsFromAPI(): Promise<Plant[]> {
+  // Check if backend is available and we're online
+  if (!navigator.onLine) {
+    console.log("Offline mode - using CSV fallback data");
+    return await loadPlantsFromCSV();
+  }
+
   try {
     const response = await fetch('http://localhost:3001/api/plants');
+    
+    // Check if response is ok
+    if (!response.ok) {
+      console.log("Backend not available - using CSV fallback data");
+      return await loadPlantsFromCSV();
+    }
+    
     const result: ApiResponse<any[]> = await response.json();
     
     if (!result.success) {
-      throw new Error(result.error || 'Failed to fetch plants');
+      console.log("API error - using CSV fallback data");
+      return await loadPlantsFromCSV();
     }
     
     // Convert API data to Plant interface format
@@ -46,13 +61,21 @@ export async function fetchPlantsFromAPI(): Promise<Plant[]> {
       plantingMethod: plant.plantingMethod
     }));
   } catch (error) {
-    console.error('Error fetching plants from API:', error);
-    return [];
+    console.log("API fetch failed - using CSV fallback data");
+    return await loadPlantsFromCSV();
   }
 }
 
 // Add a new plant to the community collection
 export async function addPlantToCommunity(plantData: any): Promise<{ success: boolean; message: string; plant?: any }> {
+  // Check if we're online
+  if (!navigator.onLine) {
+    return {
+      success: false,
+      message: 'Offline - cannot add plant to community'
+    };
+  }
+
   try {
     const response = await fetch('http://localhost:3001/api/add-plant', {
       method: 'POST',
@@ -62,10 +85,23 @@ export async function addPlantToCommunity(plantData: any): Promise<{ success: bo
       body: JSON.stringify(plantData),
     });
     
+    // Check if response is ok
+    if (!response.ok) {
+      console.log("Backend not available - cannot add plant");
+      return {
+        success: false,
+        message: 'Backend not available - please try again later'
+      };
+    }
+    
     const result = await response.json();
     
     if (!result.success) {
-      throw new Error(result.error || 'Failed to add plant');
+      console.log("API error adding plant");
+      return {
+        success: false,
+        message: result.error || 'Failed to add plant'
+      };
     }
     
     return {
@@ -74,7 +110,7 @@ export async function addPlantToCommunity(plantData: any): Promise<{ success: bo
       plant: result.plant
     };
   } catch (error) {
-    console.error('Error adding plant:', error);
+    console.log("Failed to add plant to community");
     return {
       success: false,
       message: error instanceof Error ? error.message : 'Failed to add plant'
@@ -84,25 +120,56 @@ export async function addPlantToCommunity(plantData: any): Promise<{ success: bo
 
 // Get community plants only
 export async function fetchCommunityPlants(): Promise<any[]> {
+  // Check if we're online
+  if (!navigator.onLine) {
+    console.log("Offline mode - cannot fetch community plants");
+    return [];
+  }
+
   try {
     const response = await fetch('http://localhost:3001/api/community-plants');
+    
+    // Check if response is ok
+    if (!response.ok) {
+      console.log("Backend not available - cannot fetch community plants");
+      return [];
+    }
+    
     const result: ApiResponse<any[]> = await response.json();
     
     if (!result.success) {
-      throw new Error(result.error || 'Failed to fetch community plants');
+      console.log("API error fetching community plants");
+      return [];
     }
     
     return result.data;
   } catch (error) {
-    console.error('Error fetching community plants:', error);
+    console.log("Failed to fetch community plants");
     return [];
   }
 }
 
 // Check API health
 export async function checkAPIHealth(): Promise<{ success: boolean; data?: any }> {
+  // Check if we're online
+  if (!navigator.onLine) {
+    console.log("Offline mode - API health check skipped");
+    return {
+      success: false
+    };
+  }
+
   try {
     const response = await fetch('http://localhost:3001/api/health');
+    
+    // Check if response is ok
+    if (!response.ok) {
+      console.log("Backend not available - health check failed");
+      return {
+        success: false
+      };
+    }
+    
     const result = await response.json();
     
     return {
@@ -110,7 +177,7 @@ export async function checkAPIHealth(): Promise<{ success: boolean; data?: any }
       data: result
     };
   } catch (error) {
-    console.error('API health check failed:', error);
+    console.log("API health check failed");
     return {
       success: false
     };
