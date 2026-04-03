@@ -670,7 +670,6 @@ const PlantGuideWizard = ({ onClose, pollutionLevel, aqi }: PlantGuideWizardProp
                 </div>
               ) : (
                 <div className="text-center py-10">
-                  {console.log("No match UI triggered")}
                   <TreePine className="w-10 h-10 mx-auto mb-3 text-muted-foreground/40" />
                   <p className="text-sm text-muted-foreground">No perfect matches found — try different conditions.</p>
                   
