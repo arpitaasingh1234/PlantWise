@@ -7,6 +7,7 @@ import { plants } from '@/data/plants';
 import type { Location, SunlightLevel, Plant, PollutionLevel, AreaSize } from '@/data/plants';
 import { useSavedPlants } from '@/hooks/useSavedPlants';
 import { getWeatherData, type WeatherData } from '@/services/weatherService';
+import { getRecommendations } from '@/utils/recommendations';
 
 type WizardStep = 'welcome' | 'location' | 'sunlight' | 'area' | 'weather' | 'photo' | 'results';
 
@@ -141,70 +142,28 @@ const PlantGuideWizard = ({ onClose, pollutionLevel, aqi }: PlantGuideWizardProp
     localStorage.setItem(PREFS_KEY, JSON.stringify(prefs));
   }, [location, sunlight, areaSize]);
 
-  const generateResults = useCallback(() => {
-    // Score each plant based on all conditions
-    const scoredPlants = plants.map((plant) => {
-      let score = 0;
-      
-      // +1 for each matched condition
-      if (location && plant.locations.includes(location)) score++;
-      if (sunlight && plant.sunlight.includes(sunlight)) score++;
-      if (areaSize && plant.areaSizes.includes(areaSize)) score++;
-      
-      // +1 if matches weather preference
-      if (selectedWeather === 'hot-dry') {
-        if (plant.wateringFrequency === 'biweekly' || plant.wateringFrequency === 'monthly' || plant.difficulty === 'easy') score++;
-        if (plant.pollutionTolerance.includes('high')) score++;
-      } else if (selectedWeather === 'rainy-humid') {
-        if (plant.wateringFrequency === 'weekly' || plant.wateringFrequency === 'daily') score++;
-      } else if (selectedWeather === 'cold-frost') {
-        if (plant.locations.includes('indoor')) score++;
-      }
-      // Normal weather: no extra score needed
-      
-      // For high pollution, add bonus points
-      if (isHighPollution) {
-        if (plant.airPurifying) score += 2;
-        if (plant.pollutionTolerance.includes('high')) score += 1;
-      }
-      
-      return { plant, score };
-    });
-
-    // Sort by score (highest first)
-    scoredPlants.sort((a, b) => b.score - a.score);
+  const generateResults = useCallback(async () => {
+    if (!location || !sunlight || !areaSize) return;
     
-    // Get top plants and ensure they have images
-    let filtered = scoredPlants.map(item => ({
-      ...item.plant,
-      imageUrl: item.plant.imageUrl || `https://source.unsplash.com/featured/?plant,${encodeURIComponent(item.plant.name)}`
-    }));
-    
-    // Ensure we have at least 5 plants
-    if (filtered.length < 5) {
-      // Add more plants based on pollution tolerance if needed
-      const additionalPlants = plants.filter(plant => 
-        !filtered.some(p => p.id === plant.id) && 
-        (isHighPollution ? plant.pollutionTolerance.includes('high') : true)
-      ).slice(0, 5 - filtered.length).map(plant => ({
-        ...plant,
-        imageUrl: plant.imageUrl || `https://source.unsplash.com/featured/?plant,${encodeURIComponent(plant.name)}`
-      }));
+    try {
+      // Use the same strict recommendation logic as Dashboard
+      const env = {
+        pollutionLevel: (isHighPollution ? 'high' : 'low') as 'high' | 'low',
+        spaceType: 'home' as const,
+        plantingType: 'pot' as const,
+        location,
+        sunlight,
+        areaSize,
+        weather: selectedWeather
+      };
       
-      filtered = [...filtered, ...additionalPlants];
+      const recs = await getRecommendations(env);
+      setResults(recs.recommended.slice(0, 6)); // Show top 6 plants
+    } catch (error) {
+      console.error('Failed to generate recommendations:', error);
+      // Fallback to empty results
+      setResults([]);
     }
-    
-    // Final fallback - if still less than 5, add any plants
-    if (filtered.length < 5) {
-      const anyPlants = plants.filter(plant => !filtered.some(p => p.id === plant.id)).slice(0, 5 - filtered.length).map(plant => ({
-        ...plant,
-        imageUrl: plant.imageUrl || `https://source.unsplash.com/featured/?plant,${encodeURIComponent(plant.name)}`
-      }));
-      
-      filtered = [...filtered, ...anyPlants];
-    }
-
-    setResults(filtered.slice(0, 6));
   }, [location, sunlight, areaSize, selectedWeather, isHighPollution]);
 
   const handleFile = (file: File) => {
@@ -242,11 +201,11 @@ const PlantGuideWizard = ({ onClose, pollutionLevel, aqi }: PlantGuideWizardProp
   const flow: WizardStep[] = ['welcome', 'location', 'sunlight', 'area', 'weather', 'photo', 'results'];
   const totalSteps = 5; // location, sunlight, area, weather, photo
 
-  const goNext = () => {
+  const goNext = async () => {
     const idx = flow.indexOf(step);
     if (idx < flow.length - 1) {
       if (flow[idx + 1] === 'results') {
-        generateResults();
+        await generateResults();
         setShowConfetti(true);
         setTimeout(() => setShowConfetti(false), 3500);
       }
