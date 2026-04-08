@@ -7,15 +7,16 @@ import { plants } from '@/data/plants';
 import type { Location, SunlightLevel, Plant, PollutionLevel, AreaSize } from '@/data/plants';
 import { useSavedPlants } from '@/hooks/useSavedPlants';
 import { getWeatherData, type WeatherData } from '@/services/weatherService';
+import { getRecommendations } from '@/utils/recommendations';
 
 type WizardStep = 'welcome' | 'location' | 'sunlight' | 'area' | 'weather' | 'photo' | 'results';
 
 type WeatherType = 'hot-dry' | 'rainy-humid' | 'cold-frost' | 'normal';
 
 const motivationalQuotes = [
-  "Hi Plant Lover 🌱 Let's find the perfect plant for your space!",
-  "Every great garden starts with a single seed 🌿",
-  "Your green journey begins here 🌻",
+  "Hi Plant Lover! Let's find the perfect plant for your space!",
+  "Every great garden starts with a single seed",
+  "Your green journey begins here",
 ];
 
 const fadeSlide = {
@@ -141,70 +142,28 @@ const PlantGuideWizard = ({ onClose, pollutionLevel, aqi }: PlantGuideWizardProp
     localStorage.setItem(PREFS_KEY, JSON.stringify(prefs));
   }, [location, sunlight, areaSize]);
 
-  const generateResults = useCallback(() => {
-    // Score each plant based on all conditions
-    const scoredPlants = plants.map((plant) => {
-      let score = 0;
-      
-      // +1 for each matched condition
-      if (location && plant.locations.includes(location)) score++;
-      if (sunlight && plant.sunlight.includes(sunlight)) score++;
-      if (areaSize && plant.areaSizes.includes(areaSize)) score++;
-      
-      // +1 if matches weather preference
-      if (selectedWeather === 'hot-dry') {
-        if (plant.wateringFrequency === 'biweekly' || plant.wateringFrequency === 'monthly' || plant.difficulty === 'easy') score++;
-        if (plant.pollutionTolerance.includes('high')) score++;
-      } else if (selectedWeather === 'rainy-humid') {
-        if (plant.wateringFrequency === 'weekly' || plant.wateringFrequency === 'daily') score++;
-      } else if (selectedWeather === 'cold-frost') {
-        if (plant.locations.includes('indoor')) score++;
-      }
-      // Normal weather: no extra score needed
-      
-      // For high pollution, add bonus points
-      if (isHighPollution) {
-        if (plant.airPurifying) score += 2;
-        if (plant.pollutionTolerance.includes('high')) score += 1;
-      }
-      
-      return { plant, score };
-    });
-
-    // Sort by score (highest first)
-    scoredPlants.sort((a, b) => b.score - a.score);
+  const generateResults = useCallback(async () => {
+    if (!location || !sunlight || !areaSize) return;
     
-    // Get top plants and ensure they have images
-    let filtered = scoredPlants.map(item => ({
-      ...item.plant,
-      imageUrl: item.plant.imageUrl || `https://source.unsplash.com/featured/?plant,${encodeURIComponent(item.plant.name)}`
-    }));
-    
-    // Ensure we have at least 5 plants
-    if (filtered.length < 5) {
-      // Add more plants based on pollution tolerance if needed
-      const additionalPlants = plants.filter(plant => 
-        !filtered.some(p => p.id === plant.id) && 
-        (isHighPollution ? plant.pollutionTolerance.includes('high') : true)
-      ).slice(0, 5 - filtered.length).map(plant => ({
-        ...plant,
-        imageUrl: plant.imageUrl || `https://source.unsplash.com/featured/?plant,${encodeURIComponent(plant.name)}`
-      }));
+    try {
+      // Use the same strict recommendation logic as Dashboard
+      const env = {
+        pollutionLevel: (isHighPollution ? 'high' : 'low') as 'high' | 'low',
+        spaceType: 'home' as const,
+        plantingType: 'pot' as const,
+        location,
+        sunlight,
+        areaSize,
+        weather: selectedWeather
+      };
       
-      filtered = [...filtered, ...additionalPlants];
+      const recs = await getRecommendations(env);
+      setResults(recs.recommended.slice(0, 6)); // Show top 6 plants
+    } catch (error) {
+      console.error('Failed to generate recommendations:', error);
+      // Fallback to empty results
+      setResults([]);
     }
-    
-    // Final fallback - if still less than 5, add any plants
-    if (filtered.length < 5) {
-      const anyPlants = plants.filter(plant => !filtered.some(p => p.id === plant.id)).slice(0, 5 - filtered.length).map(plant => ({
-        ...plant,
-        imageUrl: plant.imageUrl || `https://source.unsplash.com/featured/?plant,${encodeURIComponent(plant.name)}`
-      }));
-      
-      filtered = [...filtered, ...anyPlants];
-    }
-
-    setResults(filtered.slice(0, 6));
   }, [location, sunlight, areaSize, selectedWeather, isHighPollution]);
 
   const handleFile = (file: File) => {
@@ -242,11 +201,11 @@ const PlantGuideWizard = ({ onClose, pollutionLevel, aqi }: PlantGuideWizardProp
   const flow: WizardStep[] = ['welcome', 'location', 'sunlight', 'area', 'weather', 'photo', 'results'];
   const totalSteps = 5; // location, sunlight, area, weather, photo
 
-  const goNext = () => {
+  const goNext = async () => {
     const idx = flow.indexOf(step);
     if (idx < flow.length - 1) {
       if (flow[idx + 1] === 'results') {
-        generateResults();
+        await generateResults();
         setShowConfetti(true);
         setTimeout(() => setShowConfetti(false), 3500);
       }
@@ -415,7 +374,7 @@ const PlantGuideWizard = ({ onClose, pollutionLevel, aqi }: PlantGuideWizardProp
             <motion.div key="sunlight" {...fadeSlide}>
               <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1">Step {stepNumber} of {totalSteps}</p>
               <h2 className="font-display text-xl font-bold text-foreground mb-6">
-                How much sunlight does the spot get? ☀️
+                How much sunlight does the spot get?
               </h2>
 
               <div className="grid grid-cols-3 gap-3">
@@ -455,10 +414,10 @@ const PlantGuideWizard = ({ onClose, pollutionLevel, aqi }: PlantGuideWizardProp
 
               <div className="grid grid-cols-2 gap-3">
                 {([
-                  { value: 'very-small' as AreaSize, label: 'Very Small', desc: 'Window sill or desk', emoji: '🪟' },
-                  { value: 'small' as AreaSize, label: 'Small', desc: 'Balcony corner', emoji: '🏠' },
-                  { value: 'medium' as AreaSize, label: 'Medium', desc: 'Terrace or small yard', emoji: '🌿' },
-                  { value: 'large' as AreaSize, label: 'Large', desc: 'Open ground or park', emoji: '🌳' },
+                  { value: 'very-small' as AreaSize, label: 'Very Small', desc: 'Window sill or desk', emoji: null },
+                  { value: 'small' as AreaSize, label: 'Small', desc: 'Balcony corner', emoji: null },
+                  { value: 'medium' as AreaSize, label: 'Medium', desc: 'Terrace or small yard', emoji: null },
+                  { value: 'large' as AreaSize, label: 'Large', desc: 'Open ground or park', emoji: null },
                 ] as const).map((opt) => (
                   <motion.button
                     key={opt.value}
@@ -500,16 +459,16 @@ const PlantGuideWizard = ({ onClose, pollutionLevel, aqi }: PlantGuideWizardProp
             <motion.div key="weather" {...fadeSlide}>
               <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-1">Step {stepNumber} of {totalSteps}</p>
               <h2 className="font-display text-xl font-bold text-foreground mb-2">
-                Select Current Weather 🌦️
+                Select Current Weather
               </h2>
               <p className="text-sm text-muted-foreground mb-6">Choose the weather in your area for better plant suggestions</p>
 
               <div className="grid grid-cols-2 gap-3">
                 {([
-                  { value: 'hot-dry' as WeatherType, label: 'Hot & Dry', desc: 'High temperature • Less water plants', emoji: '☀️' },
-                  { value: 'rainy-humid' as WeatherType, label: 'Rainy / Humid', desc: 'Frequent rain • Moisture loving plants', emoji: '🌧️' },
-                  { value: 'cold-frost' as WeatherType, label: 'Cold / Frost', desc: 'Low temperature • Indoor plants preferred', emoji: '❄️' },
-                  { value: 'normal' as WeatherType, label: 'Normal', desc: 'Balanced weather • Most plants suitable', emoji: '🌤️' },
+                  { value: 'hot-dry' as WeatherType, label: 'Hot & Dry', desc: 'High temperature • Less water plants', emoji: null },
+                  { value: 'rainy-humid' as WeatherType, label: 'Rainy / Humid', desc: 'Frequent rain • Moisture loving plants', emoji: null },
+                  { value: 'cold-frost' as WeatherType, label: 'Cold / Frost', desc: 'Low temperature • Indoor plants preferred', emoji: null },
+                  { value: 'normal' as WeatherType, label: 'Normal', desc: 'Balanced weather • Most plants suitable', emoji: null },
                 ] as const).map((opt) => (
                   <motion.button
                     key={opt.value}
@@ -676,29 +635,29 @@ const PlantGuideWizard = ({ onClose, pollutionLevel, aqi }: PlantGuideWizardProp
                   {/* Smart Planting Ideas */}
                   <div className="mt-8">
                     <h3 className="font-display text-lg font-bold text-foreground mb-4">
-                      Try These Smart Planting Ideas 🌱
+                      Planting Suggestions
                     </h3>
                     <div className="grid grid-cols-2 gap-3">
                       {[
                         { 
-                          title: 'Vertical Gardening 🌿', 
+                          title: 'Vertical Gardening', 
                           desc: 'Use wall-mounted pots to grow plants in small spaces',
-                          icon: '🌿'
+                          icon: null
                         },
                         { 
-                          title: 'Hanging Plants 🪴', 
+                          title: 'Hanging Plants', 
                           desc: 'Hang plants near windows or balconies',
-                          icon: '🪴'
+                          icon: null
                         },
                         { 
-                          title: 'Small Indoor Plants 🌱', 
+                          title: 'Small Indoor Plants', 
                           desc: 'Try Snake Plant, Money Plant, ZZ Plant',
-                          icon: '🌱'
+                          icon: null
                         },
                         { 
-                          title: 'Hydroponics 💧', 
+                          title: 'Hydroponics', 
                           desc: 'Grow plants in water without soil',
-                          icon: '💧'
+                          icon: null
                         }
                       ].map((solution, i) => (
                         <motion.div
@@ -746,7 +705,7 @@ const PlantGuideWizard = ({ onClose, pollutionLevel, aqi }: PlantGuideWizardProp
                   </div>
                   <div>
                     <h3 className="font-display text-lg font-bold text-foreground">
-                      Recommended Soil 🌱
+                      Recommended Soil
                     </h3>
                     <p className="text-xs text-muted-foreground">
                       Based on {selectedWeather === 'hot-dry' ? 'Hot & Dry' : 
@@ -758,8 +717,8 @@ const PlantGuideWizard = ({ onClose, pollutionLevel, aqi }: PlantGuideWizardProp
 
                 <div className="grid grid-cols-2 gap-3">
                   {selectedWeather === 'hot-dry' && [
-                    { name: 'Sandy Soil', desc: 'Prevents water retention, avoids root rot', emoji: '🏖️' },
-                    { name: 'Well-drained Soil', desc: 'Prevents water retention, avoids root rot', emoji: '💧' }
+                    { name: 'Sandy Soil', desc: 'Prevents water retention, avoids root rot', emoji: null },
+                    { name: 'Well-drained Soil', desc: 'Prevents water retention, avoids root rot', emoji: null }
                   ].map((soil, i) => (
                     <motion.div
                       key={i}
@@ -768,19 +727,16 @@ const PlantGuideWizard = ({ onClose, pollutionLevel, aqi }: PlantGuideWizardProp
                       transition={{ delay: 0.1 * i }}
                       className="eco-card p-4 text-left transition-all duration-200 hover:border-primary/30"
                     >
-                      <div className="flex items-center gap-3">
-                        <span className="text-2xl">{soil.emoji}</span>
-                        <div>
-                          <p className="font-bold text-foreground text-sm">{soil.name}</p>
-                          <p className="text-xs text-muted-foreground mt-0.5">{soil.desc}</p>
-                        </div>
+                      <div>
+                        <p className="font-bold text-foreground text-sm">{soil.name}</p>
+                        <p className="text-xs text-muted-foreground mt-0.5">{soil.desc}</p>
                       </div>
                     </motion.div>
                   ))}
 
                   {selectedWeather === 'rainy-humid' && [
-                    { name: 'Loamy Soil', desc: 'Balances water, avoids excess moisture', emoji: '🌾' },
-                    { name: 'Moisture-control Soil', desc: 'Balances water, avoids excess moisture', emoji: '🌊' }
+                    { name: 'Loamy Soil', desc: 'Balances water, avoids excess moisture', emoji: null },
+                    { name: 'Moisture-control Soil', desc: 'Balances water, avoids excess moisture', emoji: null }
                   ].map((soil, i) => (
                     <motion.div
                       key={i}
@@ -789,19 +745,16 @@ const PlantGuideWizard = ({ onClose, pollutionLevel, aqi }: PlantGuideWizardProp
                       transition={{ delay: 0.1 * i }}
                       className="eco-card p-4 text-left transition-all duration-200 hover:border-primary/30"
                     >
-                      <div className="flex items-center gap-3">
-                        <span className="text-2xl">{soil.emoji}</span>
-                        <div>
-                          <p className="font-bold text-foreground text-sm">{soil.name}</p>
-                          <p className="text-xs text-muted-foreground mt-0.5">{soil.desc}</p>
-                        </div>
+                      <div>
+                        <p className="font-bold text-foreground text-sm">{soil.name}</p>
+                        <p className="text-xs text-muted-foreground mt-0.5">{soil.desc}</p>
                       </div>
                     </motion.div>
                   ))}
 
                   {selectedWeather === 'cold-frost' && [
-                    { name: 'Nutrient-rich Soil', desc: 'Supports growth in low temperature', emoji: '🌿' },
-                    { name: 'Indoor Potting Mix', desc: 'Supports growth in low temperature', emoji: '🪴' }
+                    { name: 'Nutrient-rich Soil', desc: 'Supports growth in low temperature', emoji: null },
+                    { name: 'Indoor Potting Mix', desc: 'Supports growth in low temperature', emoji: null }
                   ].map((soil, i) => (
                     <motion.div
                       key={i}
@@ -810,18 +763,15 @@ const PlantGuideWizard = ({ onClose, pollutionLevel, aqi }: PlantGuideWizardProp
                       transition={{ delay: 0.1 * i }}
                       className="eco-card p-4 text-left transition-all duration-200 hover:border-primary/30"
                     >
-                      <div className="flex items-center gap-3">
-                        <span className="text-2xl">{soil.emoji}</span>
-                        <div>
-                          <p className="font-bold text-foreground text-sm">{soil.name}</p>
-                          <p className="text-xs text-muted-foreground mt-0.5">{soil.desc}</p>
-                        </div>
+                      <div>
+                        <p className="font-bold text-foreground text-sm">{soil.name}</p>
+                        <p className="text-xs text-muted-foreground mt-0.5">{soil.desc}</p>
                       </div>
                     </motion.div>
                   ))}
 
                   {selectedWeather === 'normal' && [
-                    { name: 'Standard Garden Soil', desc: 'Suitable for most plants', emoji: '🌱' }
+                    { name: 'Standard Garden Soil', desc: 'Suitable for most plants', emoji: null }
                   ].map((soil, i) => (
                     <motion.div
                       key={i}
@@ -830,12 +780,9 @@ const PlantGuideWizard = ({ onClose, pollutionLevel, aqi }: PlantGuideWizardProp
                       transition={{ delay: 0.1 * i }}
                       className="eco-card p-4 text-left transition-all duration-200 hover:border-primary/30"
                     >
-                      <div className="flex items-center gap-3">
-                        <span className="text-2xl">{soil.emoji}</span>
-                        <div>
-                          <p className="font-bold text-foreground text-sm">{soil.name}</p>
-                          <p className="text-xs text-muted-foreground mt-0.5">{soil.desc}</p>
-                        </div>
+                      <div>
+                        <p className="font-bold text-foreground text-sm">{soil.name}</p>
+                        <p className="text-xs text-muted-foreground mt-0.5">{soil.desc}</p>
                       </div>
                     </motion.div>
                   ))}

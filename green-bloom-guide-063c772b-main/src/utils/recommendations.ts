@@ -198,7 +198,7 @@ export async function getRecommendations(env: UserEnvironment): Promise<Recommen
   const allPlants = await loadPlantsFromCSV();
   console.log("Using local CSV dataset for plant recommendations");
 
-  // CONFIDENCE SCORING SYSTEM
+  // CONFIDENCE SCORING SYSTEM - Enhanced for diversity
   const scoredPlants = allPlants.map(plant => {
     let score = 0;
     
@@ -221,56 +221,78 @@ export async function getRecommendations(env: UserEnvironment): Promise<Recommen
       score += 1; // normal weather gets point by default
     }
     
+    // DIVERSITY BONUS - Add small random variation to prevent same plants always winning
+    score += Math.random() * 0.5; // Small random factor for variety
+    
     return { plant, score };
   });
 
-  // MINIMUM CONFIDENCE FILTER - Only score >= 4
+  // MINIMUM CONFIDENCE FILTER - Only score >= 4 (must have both mandatory + at least 2 secondary)
   let highConfidencePlants = scoredPlants.filter(item => item.score >= 4).map(item => item.plant);
 
-  // FINAL VALIDATION - Double-check mandatory conditions
+  // STRICT MANDATORY VALIDATION - MUST match both location and sunlight
   highConfidencePlants = highConfidencePlants.filter(plant => {
     const matchesLocation = plant.locations.includes(env.location);
     const matchesSunlight = plant.sunlight.includes(env.sunlight);
     
-    // If false, REMOVE
-    return matchesLocation && matchesSunlight;
+    // ABSOLUTE REQUIREMENT: Must match both mandatory conditions
+    if (!matchesLocation || !matchesSunlight) {
+      return false;
+    }
+    
+    return true;
   });
 
-  // ALWAYS SHOW 5 RESULTS - Add plants that match mandatory conditions
+  // ADD DIVERSITY - Shuffle to prevent same plants repeating
+  highConfidencePlants.sort(() => Math.random() - 0.5);
+
+  // ALWAYS SHOW 5 RESULTS - Add plants that match mandatory conditions ONLY
   if (highConfidencePlants.length < 5) {
-    const additionalPlants = allPlants.filter(plant => {
-      // Must match indoorOutdoor + sunlight
+    // Get all matching plants and shuffle for diversity
+    const allMatchingPlants = allPlants.filter(plant => {
+      // STRICT REQUIREMENT: Must match both mandatory conditions
       const matchesLocation = plant.locations.includes(env.location);
       const matchesSunlight = plant.sunlight.includes(env.sunlight);
       
       // Skip if already in list
       if (highConfidencePlants.some(p => p.id === plant.id)) return false;
       
+      // MUST match both location AND sunlight - no exceptions
       return matchesLocation && matchesSunlight;
-    }).slice(0, 5 - highConfidencePlants.length);
+    });
+    
+    // Shuffle for variety
+    allMatchingPlants.sort(() => Math.random() - 0.5);
+    
+    const additionalPlants = allMatchingPlants.slice(0, 5 - highConfidencePlants.length);
     
     highConfidencePlants = [...highConfidencePlants, ...additionalPlants];
   }
 
-  // FINAL VALIDATION - Remove wrong examples
+  // ABSOLUTE FINAL VALIDATION - Remove any plants that don't match mandatory conditions
   highConfidencePlants = highConfidencePlants.filter(plant => {
-    // Example: If indoor + low light, remove outdoor/full sun plants
+    // MUST match both location and sunlight - no exceptions
     const matchesLocation = plant.locations.includes(env.location);
     const matchesSunlight = plant.sunlight.includes(env.sunlight);
     
-    // Specific wrong examples to remove
+    // ABSOLUTE REQUIREMENT: Both conditions must be true
+    if (!matchesLocation || !matchesSunlight) {
+      return false;
+    }
+    
+    // Double-check specific mismatches
     if (env.location === 'indoor' && !plant.locations.includes('indoor')) return false;
     if (env.location === 'outdoor' && !plant.locations.includes('outdoor')) return false;
     if (env.sunlight === 'low' && !plant.sunlight.includes('low')) return false;
     if (env.sunlight === 'full' && !plant.sunlight.includes('full')) return false;
     
-    return matchesLocation && matchesSunlight;
+    return true;
   });
 
   recommendedPlants = highConfidencePlants.slice(0, 6);
 
   // AVOID LIST - Plants that fail core conditions
-  const avoidPlants = allPlants.filter(plant => {
+  const avoidCandidates = allPlants.filter(plant => {
     // Skip plants already in recommended list
     if (recommendedPlants.some(rec => rec.id === plant.id)) return false;
 
@@ -281,7 +303,11 @@ export async function getRecommendations(env: UserEnvironment): Promise<Recommen
     
     // Add to avoid if fails any core condition
     return failsLocation || failsSunlight || failsSpaceType;
-  }).slice(0, 3);
+  });
+
+  // Shuffle avoid list for variety
+  avoidCandidates.sort(() => Math.random() - 0.5);
+  const avoidPlants = avoidCandidates.slice(0, 3);
 
   // Fetch ML survival scores in parallel
   const finalPlants: RecommendedPlant[] = await Promise.all(
